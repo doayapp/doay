@@ -1,0 +1,325 @@
+name: Build Doay
+
+on:
+    release:
+        types: [ published ]
+    workflow_dispatch:
+
+permissions: write-all
+
+env:
+    XRAY_VERSION: v25.4.30
+
+jobs:
+    windows:
+        strategy:
+            fail-fast: false
+            matrix:
+                arch: [ x64, arm64 ]
+                include:
+                    -   arch: x64
+                        target: x86_64-pc-windows-msvc
+                        xray_zip: Xray-windows-64.zip
+                    -   arch: arm64
+                        target: aarch64-pc-windows-msvc
+                        xray_zip: Xray-windows-arm64-v8a.zip
+
+        runs-on: windows-latest
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4
+
+            -   name: Get Doay version from package.json
+                id: get_version
+                shell: pwsh
+                run: |
+                    $version = jq -r .version package.json
+                    echo "version=$version" >> $env:GITHUB_OUTPUT
+                    echo "Doay version is $version"
+
+            -   name: Setup pnpm and Install dependencies
+                run: |
+                    npm install -g pnpm
+                    pnpm install
+
+            -   name: Print OS, Rust, Node.js, npm and pnpm versions
+                shell: bash
+                run: |
+                    echo "🖥️ OS: $(uname -a)"
+                    echo "🦀 Rust version: $(rustc -V)"
+                    echo "📦 Cargo version: $(cargo -V)"
+                    echo "🟢 Node.js version: $(node -v)"
+                    echo "📦 npm version: $(npm -v)"
+                    echo "📦 pnpm version: $(pnpm -v || echo 'pnpm not installed')"
+
+            -   name: Download Xray
+                shell: pwsh
+                run: |
+                    $url = "https://github.com/XTLS/Xray-core/releases/download/${{ env.XRAY_VERSION }}/${{ matrix.xray_zip }}"
+                    Invoke-WebRequest -Uri $url -OutFile ${{ matrix.xray_zip }}
+                    New-Item -ItemType Directory -Force -Path src-tauri/ray | Out-Null
+                    Expand-Archive -Path ${{ matrix.xray_zip }} -DestinationPath src-tauri/ray -Force
+
+            -   name: List files in the Xray directory
+                run: ls -R src-tauri/ray
+
+            -   name: Add Rust Target
+                run: rustup target add ${{ matrix.target }}
+
+            -   name: Rust Cache
+                uses: Swatinem/rust-cache@v2
+                with:
+                    workspaces: src-tauri
+                    cache-all-crates: true
+                    cache-on-failure: true
+
+            -   name: Build Doay App
+                run: pnpm run tauri build --target=${{ matrix.target }}
+
+            -   name: Set bundle output path
+                shell: bash
+                run: echo "BUNDLE_DIR=src-tauri/target/${{ matrix.target }}/release/bundle" >> "$GITHUB_ENV"
+
+            -   name: Rename artifact on Windows
+                shell: pwsh
+                run: |
+                    $file = Get-ChildItem -Path $env:BUNDLE_DIR\nsis\ -Filter "Doay_*" | Select-Object -First 1
+                    if ($file) {
+                      $newName = $file.Name -replace '^Doay_', 'Doay_windows_'
+                      $newPath = Join-Path -Path $file.DirectoryName -ChildPath $newName
+                      Rename-Item -Path $file.FullName -NewName $newPath
+                      Write-Host "✅ Renamed $($file.Name) to $newName"
+                    } else {
+                      Write-Host "❗ No file matching 'Doay_*' found in $env:BUNDLE_DIR"
+                    }
+
+            -   name: List files in the release bundle directory
+                run: ls -R ${{ env.BUNDLE_DIR }}
+
+            -   name: Upload build artifacts
+                uses: actions/upload-artifact@v4
+                with:
+                    name: doay-windows-${{ matrix.arch }}
+                    path: ${{ env.BUNDLE_DIR }}/*
+
+            -   name: Upload release
+                uses: softprops/action-gh-release@v2
+                if: github.event_name == 'release'
+                with:
+                    token: ${{ secrets.GITHUB_TOKEN }}
+                    name: Doay v${{ steps.get_version.outputs.version }}
+                    tag_name: v${{ steps.get_version.outputs.version }}
+                    body_path: release.md
+                    files: |
+                        ${{ env.BUNDLE_DIR }}/nsis/*.exe
+
+    macos:
+        strategy:
+            fail-fast: false
+            matrix:
+                arch: [ x64, arm64 ]
+                include:
+                    -   arch: x64
+                        target: x86_64-apple-darwin
+                        xray_zip: Xray-macos-64.zip
+                    -   arch: arm64
+                        target: aarch64-apple-darwin
+                        xray_zip: Xray-macos-arm64-v8a.zip
+
+        runs-on: macos-latest
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4
+
+            -   name: Get Doay version from package.json
+                id: get_version
+                run: |
+                    version=$(jq -r .version package.json)
+                    echo "version=$version" >> "$GITHUB_OUTPUT"
+                    echo "Doay version is $version"
+
+            -   name: Setup pnpm and Install dependencies
+                run: |
+                    npm install -g pnpm
+                    pnpm install
+
+            -   name: Print OS, Rust, Node.js, npm and pnpm versions
+                shell: bash
+                run: |
+                    echo "🖥️ OS: $(uname -a)"
+                    echo "🦀 Rust version: $(rustc -V)"
+                    echo "📦 Cargo version: $(cargo -V)"
+                    echo "🟢 Node.js version: $(node -v)"
+                    echo "📦 npm version: $(npm -v)"
+                    echo "📦 pnpm version: $(pnpm -v || echo 'pnpm not installed')"
+
+            -   name: Download Xray
+                shell: bash
+                run: |
+                    URL="https://github.com/XTLS/Xray-core/releases/download/${{ env.XRAY_VERSION }}/${{ matrix.xray_zip }}"
+                    wget "$URL" -O "${{ matrix.xray_zip }}"
+                    mkdir -p src-tauri/ray
+                    unzip -o "${{ matrix.xray_zip }}" -d src-tauri/ray
+
+            -   name: List files in the Xray directory
+                run: ls -R src-tauri/ray
+
+            -   name: Add Rust Target
+                run: rustup target add ${{ matrix.target }}
+
+            -   name: Rust Cache
+                uses: Swatinem/rust-cache@v2
+                with:
+                    workspaces: src-tauri
+                    cache-all-crates: true
+                    cache-on-failure: true
+
+            -   name: Build Doay App
+                run: pnpm run tauri build --target=${{ matrix.target }}
+
+            -   name: Set bundle output path
+                run: echo "BUNDLE_DIR=src-tauri/target/${{ matrix.target }}/release/bundle" >> "$GITHUB_ENV"
+
+            -   name: Rename artifact on macOS
+                run: |
+                    FILE=$(ls "$BUNDLE_DIR"/dmg/Doay_* 2>/dev/null || true)
+                    if [ -n "$FILE" ] && [ -f "$FILE" ]; then
+                      NEW_FILE="${FILE/Doay_/Doay_macos_}"
+                      mv "$FILE" "$NEW_FILE"
+                      echo "✅ Renamed $(basename "$FILE") to $(basename "$NEW_FILE")"
+                    else
+                      echo "❗ No Doay_* file found in $BUNDLE_DIR/dmg to rename."
+                    fi
+
+            -   name: List files in the release bundle directory
+                run: ls -R ${{ env.BUNDLE_DIR }}
+
+            -   name: Upload build artifacts
+                uses: actions/upload-artifact@v4
+                with:
+                    name: doay-macos-${{ matrix.arch }}
+                    path: ${{ env.BUNDLE_DIR }}/*
+
+            -   name: Upload release
+                uses: softprops/action-gh-release@v2
+                if: github.event_name == 'release'
+                with:
+                    token: ${{ secrets.GITHUB_TOKEN }}
+                    name: Doay v${{ steps.get_version.outputs.version }}
+                    tag_name: v${{ steps.get_version.outputs.version }}
+                    body_path: release.md
+                    files: |
+                        ${{ env.BUNDLE_DIR }}/dmg/*.dmg
+
+    linux:
+        strategy:
+            fail-fast: false
+            matrix:
+                arch: [ x64 ]
+                include:
+                    -   arch: x64
+                        target: x86_64-unknown-linux-gnu
+                        xray_zip: Xray-linux-64.zip
+
+        runs-on: ubuntu-latest
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4
+
+            -   name: Get Doay version from package.json
+                id: get_version
+                run: |
+                    version=$(jq -r .version package.json)
+                    echo "version=$version" >> "$GITHUB_OUTPUT"
+                    echo "Doay version is $version"
+
+            -   name: Setup pnpm and Install dependencies
+                run: |
+                    npm install -g pnpm
+                    pnpm install
+
+            -   name: Print OS, Rust, Node.js, npm and pnpm versions
+                shell: bash
+                run: |
+                    echo "🖥️ OS: $(uname -a)"
+                    echo "🦀 Rust version: $(rustc -V)"
+                    echo "📦 Cargo version: $(cargo -V)"
+                    echo "🟢 Node.js version: $(node -v)"
+                    echo "📦 npm version: $(npm -v)"
+                    echo "📦 pnpm version: $(pnpm -v || echo 'pnpm not installed')"
+
+            -   name: Download Xray
+                shell: bash
+                run: |
+                    URL="https://github.com/XTLS/Xray-core/releases/download/${{ env.XRAY_VERSION }}/${{ matrix.xray_zip }}"
+                    wget "$URL" -O "${{ matrix.xray_zip }}"
+                    mkdir -p src-tauri/ray
+                    unzip -o "${{ matrix.xray_zip }}" -d src-tauri/ray
+
+            -   name: List files in the Xray directory
+                run: ls -R src-tauri/ray
+
+            -   name: Install dependencies on Linux
+                run: |
+                    sudo apt update
+                    sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+            -   name: Add Rust Target
+                run: rustup target add ${{ matrix.target }}
+
+            -   name: Rust Cache
+                uses: Swatinem/rust-cache@v2
+                with:
+                    workspaces: src-tauri
+                    cache-all-crates: true
+                    cache-on-failure: true
+
+            -   name: Build Doay App
+                run: pnpm run tauri build --target=${{ matrix.target }}
+
+            -   name: Set bundle output path
+                run: echo "BUNDLE_DIR=src-tauri/target/${{ matrix.target }}/release/bundle" >> "$GITHUB_ENV"
+
+            -   name: Rename artifact on Linux
+                run: |
+                    DEB_FILE=$(find "$BUNDLE_DIR"/deb -maxdepth 1 -type f -name "Doay_*" 2>/dev/null || true)
+                    if [ -n "$DEB_FILE" ] && [ -f "$DEB_FILE" ]; then
+                      NEW_DEB_FILE="${DEB_FILE/Doay_/Doay_linux_}"
+                      mv "$DEB_FILE" "$NEW_DEB_FILE"
+                      echo "✅ Renamed $(basename "$DEB_FILE") to $(basename "$NEW_DEB_FILE")"
+                    else
+                      echo "❗ No Doay_* file found in $BUNDLE_DIR/deb to rename."
+                    fi
+
+                    RPM_FILE=$(find "$BUNDLE_DIR"/rpm -maxdepth 1 -type f -name "Doay-*" 2>/dev/null || true)
+                    if [ -n "$RPM_FILE" ] && [ -f "$RPM_FILE" ]; then
+                      NEW_RPM_FILE="${RPM_FILE/Doay-/Doay-linux-}"
+                      mv "$RPM_FILE" "$NEW_RPM_FILE"
+                      echo "✅ Renamed $(basename "$RPM_FILE") to $(basename "$NEW_RPM_FILE")"
+                    else
+                      echo "❗ No Doay-* file found in $BUNDLE_DIR/rpm to rename."
+                    fi
+
+            -   name: List files in the release bundle directory
+                run: ls -R ${{ env.BUNDLE_DIR }}
+
+            -   name: Upload build artifacts
+                uses: actions/upload-artifact@v4
+                with:
+                    name: doay-linux-${{ matrix.arch }}
+                    path: ${{ env.BUNDLE_DIR }}/*
+
+            -   name: Upload Release
+                uses: softprops/action-gh-release@v2
+                if: github.event_name == 'release'
+                with:
+                    token: ${{ secrets.GITHUB_TOKEN }}
+                    name: Doay v${{ steps.get_version.outputs.version }}
+                    tag_name: v${{ steps.get_version.outputs.version }}
+                    body_path: release.md
+                    files: |
+                        ${{ env.BUNDLE_DIR }}/deb/*.deb
+                        ${{ env.BUNDLE_DIR }}/rpm/*.rpm
