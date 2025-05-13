@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
     Drawer, Button, Box, BottomNavigation, BottomNavigationAction,
     Card, Chip, Paper, Stack, Typography, TextField, MenuItem, LinearProgress,
@@ -108,9 +108,7 @@ export const SpeedTest = () => {
     const handleServerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const key = Number(e.target.value)
         setSpeedTestServer(key)
-        if (key === -1) {
-            proxyUrl.current = getProxyUrl()
-        }
+        if (key === -1) proxyUrl.current = getProxyUrl()
         handleResetAll()
     }
 
