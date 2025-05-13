@@ -64,8 +64,6 @@ export const SpeedTest = () => {
         const serverList = await readServerList() as ServerList
         if (serverList) setServerList(serverList)
 
-        proxyUrl.current = getProxyUrl()
-
         setIsInit(true)
     }, 100)
     useEffect(loadConfig, [])
@@ -87,10 +85,6 @@ export const SpeedTest = () => {
         setUploadUrl(uploadList[conf.uploadActive]?.url || '')
     }
 
-    const getProxyUrl = () => {
-        return appConfig.ray_enable ? `socks5://${appConfig.ray_host}:${appConfig.ray_socks_port}` : ''
-    }
-
     const extractNames = (content: string): TestUrlRow[] => {
         const result: TestUrlRow[] = []
         const lines = processLines(content)
@@ -106,9 +100,7 @@ export const SpeedTest = () => {
     }
 
     const handleServerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const key = Number(e.target.value)
-        setSpeedTestServer(key)
-        if (key === -1) proxyUrl.current = getProxyUrl()
+        setSpeedTestServer(Number(e.target.value))
         handleResetAll()
     }
 
@@ -164,13 +156,20 @@ export const SpeedTest = () => {
         setUploadError(false)
     }
 
+    const getProxyUrl = () => {
+        return appConfig.ray_enable ? `socks5://${appConfig.ray_host}:${appConfig.ray_socks_port}` : ''
+    }
+
     // ============== Test Server ==============
     let testPort = useRef(0)
     let isTestStarting = useRef(false)
     let appDir = useRef<string>('')
     let rayCommonConfig = useRef<RayCommonConfig | null>(null)
     const startTestServer = async () => {
-        if (speedTestServer === -1) return
+        if (speedTestServer === -1) {
+            proxyUrl.current = getProxyUrl()
+            return
+        }
 
         // cansel stop server
         if (isTestStarting.current) {
@@ -511,6 +510,7 @@ export const SpeedTest = () => {
 
             <Card elevation={3} sx={{p: 1, pt: 2}}>
                 <TextField
+                    disabled={isTesting}
                     select fullWidth size="small"
                     label="测试服务器"
                     value={speedTestServer}
