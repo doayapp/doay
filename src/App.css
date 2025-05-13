@@ -60,7 +60,7 @@ html.dark {
     height: 8px;
 }
 
-.code-mirror {
+.code-mirror, .log-view {
     user-select: text !important;
     -webkit-user-select: text !important;
 }
@@ -95,11 +95,6 @@ body, html {
     height: calc(100vh);
     padding: 10px;
     overflow-y: auto;
-}
-
-.log-view {
-    -webkit-user-select: auto;
-    user-select: auto;
 }
 
 /*.drag-grab {

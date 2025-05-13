@@ -12,7 +12,9 @@ const isEditableElement = (el: EventTarget | null): boolean => {
 export function useNoBackspaceNav() {
     useEffect(() => {
         const handleBackspace = (e: KeyboardEvent) => {
-            if (!isEditableElement(e.target)) e.preventDefault()
+            if (e.key === 'Backspace' && !isEditableElement(e.target)) {
+                e.preventDefault()
+            }
         }
 
         window.addEventListener('keydown', handleBackspace)
