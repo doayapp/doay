@@ -66,9 +66,9 @@ const App: React.FC = () => {
             if (isElapsed.current) return
             isElapsed.current = true
 
-            await appElapsed()
             let isQuiet = await isQuietMode()
             if (!isQuiet) await showWindow()
+            await appElapsed()
         }, 0)
     }, [])
 
