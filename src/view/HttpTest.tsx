@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react'
-import { Button, Box, Chip, Card, Paper, Stack, TextField, LinearProgress, Typography } from '@mui/material'
+import React, { useState, useEffect, useRef } from 'react'
+import { Button, Box, Chip, Card, Paper, Stack, TextField, LinearProgress, Typography, MenuItem } from '@mui/material'
 
 import { HtmlCodeViewer, JsonCodeViewer } from "../component/CodeViewer.tsx"
 import { AutoCompleteField } from "../component/AutoCompleteField.tsx"
-import { fetchResponseHeaders, fetchTextContent, readAppConfig } from "../util/invoke.ts"
-import { DEFAULT_APP_CONFIG } from "../util/config.ts"
+import { fetchResponseHeaders, fetchTextContent, getDoayAppDir, readAppConfig, readRayCommonConfig, readServerList, stopSpeedTestServer } from "../util/invoke.ts"
+import { DEFAULT_APP_CONFIG, DEFAULT_RAY_COMMON_CONFIG } from "../util/config.ts"
 import { useDebounce } from "../hook/useDebounce.ts"
-import { formatSecond, sizeToUnit } from "../util/util.ts"
+import { formatSecond, sizeToUnit, sleep } from "../util/util.ts"
+import { generateAndStartSpeedTestServer, generateServerPort } from "../util/serverSpeed.ts"
 
 const urlList = [
     'https://www.google.com',
@@ -65,6 +66,9 @@ const urlList = [
 export const HttpTest = () => {
     const [appConfig, setAppConfig] = useState<AppConfig>(DEFAULT_APP_CONFIG)
 
+    const [serverList, setServerList] = useState<ServerList>([])
+    const [speedTestServer, setSpeedTestServer] = useState(-1)
+
     const [urlValue, setUrlValue] = useState(urlList[0] || '')
     const [headersValue, setHeadersValue] = useState<any>()
     const [htmlValue, setHtmlValue] = useState('')
@@ -77,12 +81,18 @@ export const HttpTest = () => {
     const loadConfig = useDebounce(async () => {
         const newConfig = await readAppConfig()
         if (newConfig) setAppConfig({...DEFAULT_APP_CONFIG, ...newConfig})
+
+        const serverList = await readServerList() as ServerList
+        if (serverList) setServerList(serverList)
+
         setIsInit(true)
     }, 100)
     useEffect(loadConfig, [])
 
-    const getProxyUrl = () => {
-        return appConfig.ray_enable ? `socks5://${appConfig.ray_host}:${appConfig.ray_socks_port}` : ''
+    const handleServerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const key = Number(e.target.value)
+        setSpeedTestServer(key)
+        resetValue()
     }
 
     const urlValueChange = (value: string) => {
@@ -99,6 +109,46 @@ export const HttpTest = () => {
         setElapsed(0)
     }
 
+    const getProxyUrl = () => {
+        return appConfig.ray_enable ? `socks5://${appConfig.ray_host}:${appConfig.ray_socks_port}` : ''
+    }
+
+    // ============== Test Server ==============
+    const proxyUrl = useRef('')
+    let testPort = useRef(0)
+    let appDir = useRef<string>('')
+    let rayCommonConfig = useRef<RayCommonConfig | null>(null)
+    const startTestServer = async () => {
+        if (speedTestServer === -1) {
+            proxyUrl.current = getProxyUrl()
+            return
+        }
+
+        if (!rayCommonConfig.current) rayCommonConfig.current = await readRayCommonConfig() || DEFAULT_RAY_COMMON_CONFIG
+        if (!appDir.current) appDir.current = await getDoayAppDir()
+
+        const server = serverList[speedTestServer]
+        if (!server) return
+
+        const port = await generateServerPort()
+        if (!port) return
+
+        const ok = await generateAndStartSpeedTestServer(server, appDir.current, rayCommonConfig.current, port)
+        if (!ok) return
+
+        testPort.current = port
+        proxyUrl.current = `socks5://127.0.0.1:${port}`
+        await sleep(500)
+    }
+
+    let timeoutStop = useRef<number>(0)
+    const stopTestServer = () => {
+        timeoutStop.current = setTimeout(async () => {
+            await stopSpeedTestServer(testPort.current)
+        }, 1000)
+    }
+
+    // ============== Get Headers ==============
     const [elapsed, setElapsed] = useState(0)
     const handleGetHeaders = async () => {
         if (!urlValue) return
@@ -106,8 +156,10 @@ export const HttpTest = () => {
         setLoading(true)
         setRequestType('headers')
 
+        await startTestServer()
+
         const startTime = performance.now()
-        const result = await fetchResponseHeaders(urlValue, getProxyUrl())
+        const result = await fetchResponseHeaders(urlValue, proxyUrl.current)
         const elapsed = Math.floor(performance.now() - startTime)
         setElapsed(elapsed)
 
@@ -118,16 +170,20 @@ export const HttpTest = () => {
             setErrorMsg(result?.error_message || '请求失败')
         }
         setLoading(false)
+        stopTestServer()
     }
 
+    // ============== Get Html ==============
     const handleGetHtml = async () => {
         if (!urlValue) return
         resetValue()
         setLoading(true)
         setRequestType('html')
 
+        await startTestServer()
+
         const startTime = performance.now()
-        const result = await fetchTextContent(urlValue, getProxyUrl())
+        const result = await fetchTextContent(urlValue, proxyUrl.current)
         const elapsed = Math.floor(performance.now() - startTime)
         setElapsed(elapsed)
 
@@ -138,6 +194,7 @@ export const HttpTest = () => {
             setErrorMsg(result?.error_message || '请求失败')
         }
         setLoading(false)
+        stopTestServer()
     }
 
     const [statusCode, setStatusCode] = useState(0)
@@ -168,6 +225,20 @@ export const HttpTest = () => {
 
                 {isInit && (appConfig.ray_enable ? <Chip label="代理已开启" color="success" variant="outlined"/> : <Chip label="代理未开启" color="error" variant="outlined"/>)}
             </Stack>
+
+            <Card elevation={4} sx={{p: 1, pt: 2}}>
+                <TextField
+                    select fullWidth size="small"
+                    label="测试服务器"
+                    value={speedTestServer}
+                    onChange={handleServerChange}
+                >
+                    <MenuItem value={-1}>跟随软件设置</MenuItem>
+                    {serverList.map((item, key) => (
+                        <MenuItem key={key} value={key}>{`${item.ps} | ${item.host}`}</MenuItem>
+                    ))}
+                </TextField>
+            </Card>
 
             {loading ? (
                 <Box sx={{py: 2}}><LinearProgress/></Box>
@@ -203,7 +274,7 @@ export const HttpTest = () => {
                                 </Stack>
                             </Stack>
                         </Paper>
-                        <JsonCodeViewer value={headersValue} height="calc(100vh - 340px)"/>
+                        <JsonCodeViewer value={headersValue} height="calc(100vh - 418px)"/>
                     </Card>
                 </>) : requestType === 'html' && (<>
                     <Card elevation={4}>
@@ -216,7 +287,7 @@ export const HttpTest = () => {
                                 </Stack>
                             </Stack>
                         </Paper>
-                        <HtmlCodeViewer value={htmlValue} height="calc(100vh - 340px)"/>
+                        <HtmlCodeViewer value={htmlValue} height="calc(100vh - 418px)"/>
                     </Card>
                 </>)}
             </>)}
