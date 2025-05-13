@@ -228,6 +228,7 @@ export const HttpTest = () => {
 
             <Card elevation={4} sx={{p: 1, pt: 2}}>
                 <TextField
+                    disabled={loading}
                     select fullWidth size="small"
                     label="测试服务器"
                     value={speedTestServer}
