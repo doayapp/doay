@@ -25,8 +25,8 @@ export const DEFAULT_RAY_COMMON_CONFIG: RayCommonConfig = {
     socks_enable: true,
     http_enable: true,
 
-    socks_udp: false,
-    socks_sniffing: false,
+    socks_udp: true,
+    socks_sniffing: true,
     socks_sniffing_dest_override: ["http", "tls"],
 
     outbounds_mux: false,
