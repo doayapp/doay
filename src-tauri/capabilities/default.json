@@ -13,6 +13,7 @@
     "core:window:allow-show",
     "core:window:allow-set-title",
     "core:window:allow-set-focus",
+    "core:window:allow-set-theme",
     "core:webview:default",
     "clipboard-manager:default",
     "clipboard-manager:allow-write-text",

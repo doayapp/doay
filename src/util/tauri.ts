@@ -61,6 +61,16 @@ export async function isFocusedWindow() {
     }
 }
 
+export async function setThemeWindow(theme: 'light' | 'dark' | null) {
+    if (!IS_TAURI) return false
+    try {
+        return await getCurrentWindow().setTheme(theme)
+    } catch (e) {
+        log.error(`Tauri setThemeWindow error: ${e}`)
+        return false
+    }
+}
+
 export async function showSaveDialog(options?: SaveDialogOptions) {
     if (!IS_TAURI) return false
     try {
