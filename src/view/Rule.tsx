@@ -178,7 +178,7 @@ const Rule: React.FC<NavProps> = ({setNavState}) => {
             </Card>
         </Paper>
 
-        <Drawer anchor="right" open={open} onClose={handleClose}>
+        <Drawer anchor="right" open={open} onClose={handleClose} transitionDuration={0}>
             <RuleAdvanced handleClose={handleClose} ruleConfig={ruleConfig} setRuleConfig={setRuleConfig} ruleDomain={ruleDomain}/>
         </Drawer>
     </>)

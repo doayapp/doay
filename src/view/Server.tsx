@@ -504,7 +504,7 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
             <MenuItem onClick={handleViewConfig}><VisibilityIcon sx={{mr: 1}} fontSize="small"/>配置</MenuItem>
             <MenuItem onClick={handleDelete}><DeleteIcon sx={{mr: 1}} fontSize="small"/>删除</MenuItem>
         </Menu>
-        <Drawer open={openDrawer} anchor="right" onClose={handleCloseDrawer}>
+        <Drawer open={openDrawer} anchor="right" onClose={handleCloseDrawer} transitionDuration={0}>
             <Stack sx={{p: 1, width: 'calc(100vw - 140px)'}} spacing={1}>
                 <div className="flex-between">
                     <IconButton onClick={handleCloseDrawer}><DoubleArrowIcon/></IconButton>
@@ -518,7 +518,7 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
                             </Tooltip>
                         </Stack>
                     </Paper>
-                    <JsonCodeViewer value={rayConfigJson} height='calc(100vh - 110px)'/>
+                    <JsonCodeViewer value={rayConfigJson} height="calc(100vh - 110px)"/>
                 </Card>
             </Stack>
         </Drawer>

@@ -411,7 +411,7 @@ export const SpeedTest = () => {
 
     const {ChipComponent, showChip} = useChip()
     return (<>
-        <Drawer anchor="right" open={open} onClose={handleClose}>
+        <Drawer anchor="right" open={open} onClose={handleClose} transitionDuration={0}>
             <Stack spacing={2} sx={{p: 2, minWidth: 700}}>
                 <DoubleArrowIcon onClick={handleClose}/>
 
