@@ -50,7 +50,7 @@ export const SpeedTest = () => {
     const [downloadUrl, setDownloadUrl] = useState<string>('')
     const [uploadUrl, setUploadUrl] = useState<string>('')
 
-    const [isInit, setIsInit] = useState(false)
+    const [isLoaded, setIsLoaded] = useState(false)
     const [speedTestConfig, setSpeedTestConfig] = useState<SpeedTestConfig>(DEFAULT_SPEED_TEST_CONFIG)
     const loadConfig = useDebounce(async () => {
         const newConfig = await readAppConfig()
@@ -64,7 +64,7 @@ export const SpeedTest = () => {
         const serverList = await readServerList() as ServerList
         if (serverList) setServerList(serverList)
 
-        setIsInit(true)
+        setIsLoaded(true)
     }, 100)
     useEffect(loadConfig, [])
 
@@ -502,7 +502,11 @@ export const SpeedTest = () => {
                 <Stack direction="row" justifyContent="center" spacing={2}>
                     <Button variant="contained" disabled={isTesting} color="secondary" onClick={handleTestAll}>测试全部</Button>
                     <Button variant="contained" disabled={isTesting} color="warning" onClick={handleResetAll}>清除结果</Button>
-                    {isInit && (appConfig.ray_enable ? <Chip label="代理已开启" color="success" variant="outlined"/> : <Chip label="代理未开启" color="error" variant="outlined"/>)}
+                    {isLoaded && (appConfig.ray_enable ? (
+                        <Chip label="代理已开启" color="success" variant="outlined"/>
+                    ) : (
+                        <Chip label="代理未开启" color="error" variant="outlined"/>
+                    ))}
                 </Stack>
 
                 <Button variant="contained" startIcon={<SettingsIcon/>} onClick={handleOpen}>高级</Button>
@@ -537,10 +541,10 @@ export const SpeedTest = () => {
                         <LinearProgress sx={{height: 10, width: '90%', borderRadius: 5}}/>
                     ) : pubIpError ? (
                         <Chip label="测试错误" color="error"/>
-                    ) : pubIpData.length === 0 ? (
-                        <Button variant="contained" disabled={isTesting} onClick={handleGetIP}>开始测试</Button>
-                    ) : (
+                    ) : pubIpData.length > 0 ? (
                         <TextField fullWidth multiline rows={5} size="small" label="返回信息" value={pubIpData}/>
+                    ) : isLoaded && (
+                        <Button variant="contained" disabled={isTesting} onClick={handleGetIP}>开始测试</Button>
                     )}
                 </Box>
             </Card>
@@ -562,10 +566,10 @@ export const SpeedTest = () => {
                         <LinearProgress sx={{height: 10, width: '90%', borderRadius: 5}}/>
                     ) : pingError ? (
                         <Chip label="测试错误" color="error"/>
-                    ) : pingData.length === 0 ? (
-                        <Button variant="contained" disabled={isTesting} onClick={handleStartPing}>开始测试</Button>
-                    ) : (
+                    ) : pingData.length > 0 ? (
                         <LineChart series={pingData} height={160}/>
+                    ) : isLoaded && (
+                        <Button variant="contained" disabled={isTesting} onClick={handleStartPing}>开始测试</Button>
                     )}
                 </Box>
             </Card>
@@ -587,10 +591,10 @@ export const SpeedTest = () => {
                         <LinearProgress sx={{height: 10, width: '90%', borderRadius: 5}}/>
                     ) : jitterError ? (
                         <Chip label="测试错误" color="error"/>
-                    ) : jitterData.length === 0 ? (
-                        <Button variant="contained" disabled={isTesting} onClick={handleStartJitter}>开始测试</Button>
-                    ) : (
+                    ) : jitterData.length > 0 ? (
                         <LineChart series={jitterData} height={160}/>
+                    ) : isLoaded && (
+                        <Button variant="contained" disabled={isTesting} onClick={handleStartJitter}>开始测试</Button>
                     )}
                 </Box>
             </Card>
@@ -606,12 +610,12 @@ export const SpeedTest = () => {
                         </Stack>
                     </Paper>
                     <Box sx={{height: 240, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                        {downloadTestState === 0 ? (
-                            <Button variant="contained" disabled={isTesting} onClick={handleStartDownload}>开始测速</Button>
-                        ) : downloadError ? (
+                        {downloadError ? (
                             <Chip label="测速资源下载失败" color="error"/>
-                        ) : (
+                        ) : downloadTestState > 0 ? (
                             <SpeedGauge percent={downloadPercent} value={downloadValue}/>
+                        ) : isLoaded && (
+                            <Button variant="contained" disabled={isTesting} onClick={handleStartDownload}>开始测速</Button>
                         )}
                     </Box>
                 </Card>
@@ -626,12 +630,12 @@ export const SpeedTest = () => {
                         </Stack>
                     </Paper>
                     <Box sx={{height: 240, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                        {uploadTestState === 0 ? (
-                            <Button variant="contained" disabled={isTesting} onClick={handleStartUpload}>开始测速</Button>
-                        ) : uploadError ? (
+                        {uploadError ? (
                             <Chip label="上传测速服务器响应异常" color="error"/>
-                        ) : (
+                        ) : uploadTestState > 0 ? (
                             <SpeedGauge percent={uploadPercent} value={uploadValue}/>
+                        ) : isLoaded && (
+                            <Button variant="contained" disabled={isTesting} onClick={handleStartUpload}>开始测速</Button>
                         )}
                     </Box>
                 </Card>
