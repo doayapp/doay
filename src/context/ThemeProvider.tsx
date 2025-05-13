@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useMemo } from 'react'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material/styles'
+import { setThemeWindow } from "../util/tauri.ts"
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -24,9 +25,15 @@ export const ThemeProvider = ({children}: { children: React.ReactNode }) => {
         return ['light', 'dark', 'system'].includes(savedMode) ? savedMode : 'system'
     })
 
+    const setTheme = (newMode: ThemeMode) => {
+        newMode = ['light', 'dark', 'system'].includes(newMode) ? newMode : 'system'
+        setMode(newMode)
+        setThemeWindow(newMode === 'system' ? null : newMode).catch()
+    }
+
     useEffect(() => {
         const savedMode = localStorage.getItem('themeMode') as ThemeMode | null
-        if (savedMode) setMode(savedMode)
+        if (savedMode) setTheme(savedMode)
     }, [])
 
     useEffect(() => localStorage.setItem('themeMode', mode), [mode])
@@ -39,7 +46,7 @@ export const ThemeProvider = ({children}: { children: React.ReactNode }) => {
     }, [mode, prefersDarkMode])
 
     const toggleMode = (newMode: ThemeMode) => {
-        setMode((prevMode) => (prevMode === newMode ? 'system' : newMode))
+        setTheme(newMode)
     }
 
     const theme = useMemo(() => {

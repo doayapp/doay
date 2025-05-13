@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, FC } from 'react'
 import {
     Paper, Box, Card, Divider,
     Tabs, Tab,
@@ -31,17 +31,16 @@ import {
 } from "../util/ray.ts"
 import { DEFAULT_APP_CONFIG, DEFAULT_RAY_COMMON_CONFIG } from "../util/config.ts"
 import { reloadProxyPAC } from "../util/proxy.ts"
-import { isAutoStartEnabled, saveAutoStart, setThemeWindow } from "../util/tauri.ts"
+import { isAutoStartEnabled, saveAutoStart } from "../util/tauri.ts"
 import { useDebounce } from "../hook/useDebounce.ts"
 
-const Setting: React.FC<NavProps> = ({setNavState}) => {
+const Setting: FC<NavProps> = ({setNavState}) => {
     useEffect(() => setNavState(6), [setNavState])
 
     // 从上下文中获取当前主题模式和切换模式的函数
     const {mode, toggleMode} = useTheme()
-    const handleTheme = async (newMode: 'light' | 'dark' | 'system') => {
+    const handleTheme = (newMode: 'light' | 'dark' | 'system') => {
         toggleMode(newMode as 'light' | 'dark' | 'system')
-        await setThemeWindow(newMode === 'system' ? null : newMode)
     }
 
     // 用于记录当前激活的选项卡索引，初始值为0（即第一个选项卡）
