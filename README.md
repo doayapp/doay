@@ -7,6 +7,7 @@ iOS 和 Android 平台
 
 - dog + day = Doay
 - Doay 是一只每天都爱笑的小狗，时间久了，眯眼眯到看不清世界，最后连毛都笑绿了
+  ![icon.png](src-tauri/icons/icon.png)
 
 ## 支持协议
 
