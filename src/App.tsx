@@ -117,7 +117,7 @@ const App: React.FC = () => {
                 </Box>
                 <div className="panel-left">
                     <Paper elevation={5} sx={{width: '100%', height: '100%', borderRadius: 0}}>
-                        <List>
+                        <List className="inset-shadow">
                             {navItems.map((item, index) => (
                                 <ListItem disablePadding key={index}>
                                     <ListItemButton
