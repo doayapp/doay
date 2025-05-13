@@ -12,10 +12,15 @@ use std::time::Instant;
 
 // static CHILD_PROCESS: Mutex<Option<Child>> = Mutex::new(None);
 static CHILD_PROCESS_MAP: Lazy<Mutex<HashMap<u16, Option<Child>>>> = Lazy::new(|| Mutex::new(HashMap::new()));
-const RAY: &str = "xray";
 
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
+
+#[cfg(target_os = "windows")]
+const RAY: &str = "xray.exe";
+
+#[cfg(not(target_os = "windows"))]
+const RAY: &str = "xray";
 
 pub fn command_new(program: &str) -> Command {
     #[cfg(target_os = "windows")]
