@@ -7,23 +7,21 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import { readAppConfig, readRayCommonConfig } from "../util/invoke.ts"
 import { DEFAULT_APP_CONFIG, DEFAULT_RAY_COMMON_CONFIG } from "../util/config.ts"
 import { clipboardWriteText } from "../util/tauri.ts"
-import { IS_LINUX, IS_MAC_OS, IS_WINDOWS } from "../util/util.ts"
+import { IS_MAC_OS, IS_WINDOWS } from "../util/util.ts"
 import { useDebounce } from "../hook/useDebounce.ts"
+
+const DEFAULT_OS = IS_MAC_OS ? 'macOS' : IS_WINDOWS ? 'windows' : 'linux'
 
 export const TerminalCmd = () => {
     const [appConfig, setAppConfig] = useState<AppConfig>(DEFAULT_APP_CONFIG)
     const [rayConfig, setRayConfig] = useState<RayCommonConfig>(DEFAULT_RAY_COMMON_CONFIG)
-    const [osType, setOsType] = useState('macOS')
+    const [osType, setOsType] = useState(DEFAULT_OS)
     const loadConfig = useDebounce(async () => {
         let newAppConfig = await readAppConfig()
         if (newAppConfig) setAppConfig(newAppConfig)
 
         let newRayConfig = await readRayCommonConfig()
         if (newRayConfig) setRayConfig(newRayConfig)
-
-        if (IS_WINDOWS) setOsType('windows')
-        if (IS_MAC_OS) setOsType('macOS')
-        if (IS_LINUX) setOsType('linux')
     }, 100)
     useEffect(loadConfig, [])
 
