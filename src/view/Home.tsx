@@ -18,7 +18,7 @@ import {
     safeInvoke, saveAppConfig
 } from "../util/invoke.ts"
 import { useDebounce } from "../hook/useDebounce.ts"
-import { formatSecond, formatTime, formatTimestamp, sizeToUnit } from "../util/util.ts"
+import { formatSecond, formatTime, formatTimestamp, IS_LINUX, sizeToUnit } from "../util/util.ts"
 import { calculateNetworkSpeed, getStatsData, sumNetworks } from "../util/network.ts"
 import { DEFAULT_RAY_COMMON_CONFIG } from "../util/config.ts"
 import { useVisibility } from "../hook/useVisibility.ts"
@@ -58,6 +58,8 @@ let isVisited = false
 
 const Home: React.FC<NavProps> = ({setNavState}) => {
     useEffect(() => setNavState(0), [setNavState])
+
+    if (IS_LINUX) return <div>linux</div>
 
     // 从配置文件中读取配置信息
     const [rayEnable, setRayEnable] = useState(false)
