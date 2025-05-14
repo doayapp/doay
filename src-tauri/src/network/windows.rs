@@ -55,12 +55,12 @@ pub fn enable_auto_proxy() -> bool {
     let config = config::get_config();
     let url = format!("http://{}:{}/proxy.pac", config.web_server_host, config.web_server_port);
     let success = command("reg", &["add", SETTINGS, "/v", "AutoConfigURL", "/t", "REG_SZ", "/d", &url, "/f"]).is_ok()
-        && command("reg", &["add", SETTINGS, "/v", "ProxyEnable", "/t", "REG_DWORD", "/d", "1", "/f"]).is_ok();
+        && command("reg", &["add", SETTINGS, "/v", "ProxyEnable", "/t", "REG_DWORD", "/d", "0", "/f"]).is_ok();
     success && notify_proxy_change()
 }
 
-fn enable_proxy(proxy_type: &str, host: &str, port: &u32) -> bool {
-    let proxy_server = format!("{}={}:{}", proxy_type, host, port);
+fn enable_proxy(host: &str, port: &u32) -> bool {
+    let proxy_server = format!("{}:{}", host, port);
     let success = command("reg", &["add", SETTINGS, "/v", "ProxyServer", "/t", "REG_SZ", "/d", &proxy_server, "/f"]).is_ok()
         && command("reg", &["add", SETTINGS, "/v", "ProxyEnable", "/t", "REG_DWORD", "/d", "1", "/f"]).is_ok();
     success && notify_proxy_change()
@@ -68,17 +68,17 @@ fn enable_proxy(proxy_type: &str, host: &str, port: &u32) -> bool {
 
 pub fn enable_socks_proxy() -> bool {
     let config = config::get_config();
-    enable_proxy("socks", &config.ray_host, &config.ray_socks_port)
+    enable_proxy(&config.ray_host, &config.ray_socks_port)
 }
 
 pub fn enable_web_proxy() -> bool {
     let config = config::get_config();
-    enable_proxy("http", &config.ray_host, &config.ray_http_port)
+    enable_proxy(&config.ray_host, &config.ray_http_port)
 }
 
 pub fn enable_secure_web_proxy() -> bool {
     let config = config::get_config();
-    enable_proxy("https", &config.ray_host, &config.ray_http_port)
+    enable_proxy(&config.ray_host, &config.ray_http_port)
 }
 
 pub fn disable_auto_proxy() -> bool {
@@ -106,7 +106,7 @@ pub fn disable_proxies() -> bool {
 }
 
 /*
-// netsh 命令会修改所有用户，不建议使用，修改注册表只用修改当前用户，影响更小。
+// netsh 命令会修改所有用户的网络配置，不建议使用。更好的方法是修改当前用户的注册表，仅影响当前用户。
 pub fn enable_auto_proxy() -> bool {
     let config = config::get_config();
     let url = format!("http://{}:{}/doay/proxy.js", config.web_server_host, config.web_server_port);
