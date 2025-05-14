@@ -31,30 +31,36 @@ export const TerminalCmd = () => {
         const {ray_host, ray_http_port, ray_socks_port} = appConfig
         const {http_enable} = rayConfig
         const http_port = http_enable ? ray_http_port : ray_socks_port
-        const cmd = osType === 'windows' ? 'set' : 'export'
-        return `${cmd} http_proxy=http://${ray_host}:${http_port};\n`
-            + `${cmd} https_proxy=http://${ray_host}:${http_port};\n`
-            + `${cmd} all_proxy=socks5://${ray_host}:${ray_socks_port}`
+        const cmd = osType === 'windows' ? '$env:' : 'export '
+        return `${cmd}http_proxy="http://${ray_host}:${http_port}";\n`
+            + `${cmd}https_proxy="http://${ray_host}:${http_port}";\n`
+            + `${cmd}all_proxy="socks5://${ray_host}:${ray_socks_port}"`
     }
 
     const getProxyUnsetEnv = () => {
-        return osType === 'windows' ? 'set http_proxy= & set https_proxy= & set all_proxy=' : 'unset http_proxy https_proxy all_proxy'
+        return osType === 'windows' ? 'Remove-Item Env:http_proxy; Remove-Item Env:https_proxy; Remove-Item Env:all_proxy' : 'unset http_proxy https_proxy all_proxy'
     }
 
     const getProxyGetEnv = () => {
-        return osType === 'windows' ? 'set | findstr /i "proxy"' : 'env | grep -i proxy'
+        return osType === 'windows' ? `gci Env: | ? { $_.Name -match 'proxy' }` : 'env | grep -i proxy'
     }
 
     const getProxyWriteEnv = () => {
         const {ray_host, ray_socks_port} = appConfig
-        return osType === 'macOS' ? `echo 'export all_proxy="socks5://${ray_host}:${ray_socks_port}"' >> ~/.bash_profile\n`
-            + `echo 'export all_proxy="socks5://${ray_host}:${ray_socks_port}"' >> ~/.zshrc`
-            : `echo 'export all_proxy="socks5://${ray_host}:${ray_socks_port}"' >> ~/.bashrc`
+        if (osType === 'macOS') {
+            return `echo 'export all_proxy="socks5://${ray_host}:${ray_socks_port}"' >> ~/.bash_profile\n`
+                + `echo 'export all_proxy="socks5://${ray_host}:${ray_socks_port}"' >> ~/.zshrc`
+        } else {
+            return `echo 'export all_proxy="socks5://${ray_host}:${ray_socks_port}"' >> ~/.bashrc`
+        }
     }
 
     const getProxyDeleteEnv = () => {
-        return osType === 'macOS' ? `sed -i '' '/export all_proxy=/d' ~/.bash_profile\nsed -i '' '/export all_proxy=/d' ~/.zshrc`
-            : `sed -i '/export all_proxy=/d' ~/.bashrc`
+        if (osType === 'macOS') {
+            return `sed -i '' '/export all_proxy=/d' ~/.bash_profile\nsed -i '' '/export all_proxy=/d' ~/.zshrc`
+        } else {
+            return `sed -i '/export all_proxy=/d' ~/.bashrc`
+        }
     }
 
     const getProxySourceEnv = () => {
