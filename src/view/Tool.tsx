@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box, Card, Paper, ToggleButtonGroup, ToggleButton } from '@mui/material'
 import TerminalIcon from '@mui/icons-material/Terminal'
 import WysiwygIcon from '@mui/icons-material/Wysiwyg'
