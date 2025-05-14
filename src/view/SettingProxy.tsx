@@ -34,7 +34,6 @@ export default () => {
 
     const handleAutoSetupSocks = async (value: boolean) => {
         setConfig(prevConfig => ({...prevConfig, auto_setup_socks: value}))
-        await saveAppConfig('set_auto_setup_socks', value)
 
         // Windows 系统下，只允许开启一个代理设置
         if (IS_WINDOWS && value) {
@@ -47,11 +46,12 @@ export default () => {
             if (config.auto_setup_pac) await saveAppConfig('set_auto_setup_pac', false)
             if (config.auto_setup_http) await saveAppConfig('set_auto_setup_http', false)
         }
+
+        await saveAppConfig('set_auto_setup_socks', value)
     }
 
     const handleAutoSetupHttp = async (value: boolean) => {
         setConfig(prevConfig => ({...prevConfig, auto_setup_http: value}))
-        await saveAppConfig('set_auto_setup_http', value)
 
         // Windows 系统下，只允许开启一个代理设置
         if (IS_WINDOWS && value) {
@@ -64,6 +64,8 @@ export default () => {
             if (config.auto_setup_pac) await saveAppConfig('set_auto_setup_pac', false)
             if (config.auto_setup_socks) await saveAppConfig('set_auto_setup_socks', false)
         }
+
+        await saveAppConfig('set_auto_setup_http', value)
     }
 
     const handleAutoSetupHttps = async (value: boolean) => {
