@@ -1,5 +1,5 @@
 use crate::dirs;
-use logger::{debug, error, info};
+use logger::{debug, error, info, trace};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -122,60 +122,100 @@ where
 {
     let mut config = get_config();
     updater(&mut config);
-    save_config_to_file(&config, CONFIG_PATH.lock().unwrap().to_str().unwrap())
-        .map_err(|e| {
+    match save_config_to_file(&config, CONFIG_PATH.lock().unwrap().to_str().unwrap()) {
+        Ok(_) => {
+            trace!("Config updated successfully");
+            true
+        }
+        Err(e) => {
             error!("Failed to update config: {}", e);
-            e
-        })
-        .is_ok()
+            false
+        }
+    }
 }
 
 pub fn set_app_log_level(value: &str) -> bool {
-    set_config(|config| config.app_log_level = value.to_string())
+    set_config(|config| {
+        trace!("Changing app_log_level from '{}' to '{}'", config.app_log_level, value);
+        config.app_log_level = value.to_string();
+    })
 }
 
 pub fn set_web_server_enable(value: bool) -> bool {
-    set_config(|config| config.web_server_enable = value)
+    set_config(|config| {
+        trace!("Changing web_server_enable from '{}' to '{}'", config.web_server_enable, value);
+        config.web_server_enable = value;
+    })
 }
 
 pub fn set_web_server_host(value: &str) -> bool {
-    set_config(|config| config.web_server_host = value.to_string())
+    set_config(|config| {
+        trace!("Changing web_server_host from '{}' to '{}'", config.web_server_host, value);
+        config.web_server_host = value.to_string();
+    })
 }
 
 pub fn set_web_server_port(value: u32) -> bool {
-    set_config(|config| config.web_server_port = value)
+    set_config(|config| {
+        trace!("Changing web_server_port from '{}' to '{}'", config.web_server_port, value);
+        config.web_server_port = value;
+    })
 }
 
 pub fn set_ray_enable(value: bool) -> bool {
-    set_config(|config| config.ray_enable = value)
+    set_config(|config| {
+        trace!("Changing ray_enable from '{}' to '{}'", config.ray_enable, value);
+        config.ray_enable = value;
+    })
 }
 
 pub fn set_ray_host(value: &str) -> bool {
-    set_config(|config| config.ray_host = value.to_string())
+    set_config(|config| {
+        trace!("Changing ray_host from '{}' to '{}'", config.ray_host, value);
+        config.ray_host = value.to_string();
+    })
 }
 
 pub fn set_ray_socks_port(value: u32) -> bool {
-    set_config(|config| config.ray_socks_port = value)
+    set_config(|config| {
+        trace!("Changing ray_socks_port from '{}' to '{}'", config.ray_socks_port, value);
+        config.ray_socks_port = value;
+    })
 }
 
 pub fn set_ray_http_port(value: u32) -> bool {
-    set_config(|config| config.ray_http_port = value)
+    set_config(|config| {
+        trace!("Changing ray_http_port from '{}' to '{}'", config.ray_http_port, value);
+        config.ray_http_port = value;
+    })
 }
 
 pub fn set_auto_setup_pac(value: bool) -> bool {
-    set_config(|config| config.auto_setup_pac = value)
+    set_config(|config| {
+        trace!("Changing auto_setup_pac from '{}' to '{}'", config.auto_setup_pac, value);
+        config.auto_setup_pac = value;
+    })
 }
 
 pub fn set_auto_setup_socks(value: bool) -> bool {
-    set_config(|config| config.auto_setup_socks = value)
+    set_config(|config| {
+        trace!("Changing auto_setup_socks from '{}' to '{}'", config.auto_setup_socks, value);
+        config.auto_setup_socks = value;
+    })
 }
 
 pub fn set_auto_setup_http(value: bool) -> bool {
-    set_config(|config| config.auto_setup_http = value)
+    set_config(|config| {
+        trace!("Changing auto_setup_http from '{}' to '{}'", config.auto_setup_http, value);
+        config.auto_setup_http = value;
+    })
 }
 
 pub fn set_auto_setup_https(value: bool) -> bool {
-    set_config(|config| config.auto_setup_https = value)
+    set_config(|config| {
+        trace!("Changing auto_setup_https from '{}' to '{}'", config.auto_setup_https, value);
+        config.auto_setup_https = value;
+    })
 }
 
 const ALLOWED_CONFIG_FILES: [&str; 10] = [

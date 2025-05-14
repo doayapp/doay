@@ -3,7 +3,6 @@ use logger::{info, warn};
 use std::net::TcpListener;
 
 pub fn set_app_log_level(value: &str) -> bool {
-    info!("set_app_log_level: {}", value);
     config::set_app_log_level(value) && {
         log::init();
         true
@@ -47,7 +46,6 @@ pub fn set_web_server_port(value: u32) -> bool {
 }
 
 pub fn set_ray_enable(value: bool) -> bool {
-    info!("set_ray_enable: {}", value);
     if config::set_ray_enable(value) {
         if value {
             ray::start() && network::setup_proxies()
