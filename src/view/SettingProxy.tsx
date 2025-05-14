@@ -6,6 +6,7 @@ import { readAppConfig, saveAppConfig } from '../util/invoke.ts'
 import { DEFAULT_APP_CONFIG } from "../util/config.ts"
 import { reloadProxyPAC } from "../util/proxy.ts"
 import { useDebounce } from "../hook/useDebounce.ts"
+import { IS_WINDOWS } from "../util/util.ts"
 
 export default () => {
     const [config, setConfig] = useState<AppConfig>(DEFAULT_APP_CONFIG)
@@ -34,11 +35,35 @@ export default () => {
     const handleAutoSetupSocks = async (value: boolean) => {
         setConfig(prevConfig => ({...prevConfig, auto_setup_socks: value}))
         await saveAppConfig('set_auto_setup_socks', value)
+
+        // Windows 系统下，只允许开启一个代理设置
+        if (IS_WINDOWS && value) {
+            setConfig(prevConfig => ({
+                ...prevConfig,
+                auto_setup_pac: false,
+                auto_setup_http: false,
+            }))
+
+            if (config.auto_setup_pac) await saveAppConfig('set_auto_setup_pac', false)
+            if (config.auto_setup_http) await saveAppConfig('set_auto_setup_http', false)
+        }
     }
 
     const handleAutoSetupHttp = async (value: boolean) => {
         setConfig(prevConfig => ({...prevConfig, auto_setup_http: value}))
         await saveAppConfig('set_auto_setup_http', value)
+
+        // Windows 系统下，只允许开启一个代理设置
+        if (IS_WINDOWS && value) {
+            setConfig(prevConfig => ({
+                ...prevConfig,
+                auto_setup_pac: false,
+                auto_setup_socks: false,
+            }))
+
+            if (config.auto_setup_pac) await saveAppConfig('set_auto_setup_pac', false)
+            if (config.auto_setup_socks) await saveAppConfig('set_auto_setup_socks', false)
+        }
     }
 
     const handleAutoSetupHttps = async (value: boolean) => {
@@ -81,14 +106,16 @@ export default () => {
                     </div>
                 </ListItemButton>
             </ListItem>
-            <ListItem disablePadding>
-                <ListItemButton sx={{cursor: 'default'}}>
-                    <div className="flex-between w100">
-                        <Typography variant="body1" sx={{pl: 1}}>HTTPS 代理</Typography>
-                        <Switch checked={config.auto_setup_https} onChange={e => handleAutoSetupHttps(e.target.checked)}/>
-                    </div>
-                </ListItemButton>
-            </ListItem>
+            {!IS_WINDOWS && (
+                <ListItem disablePadding>
+                    <ListItemButton sx={{cursor: 'default'}}>
+                        <div className="flex-between w100">
+                            <Typography variant="body1" sx={{pl: 1}}>HTTPS 代理</Typography>
+                            <Switch checked={config.auto_setup_https} onChange={e => handleAutoSetupHttps(e.target.checked)}/>
+                        </div>
+                    </ListItemButton>
+                </ListItem>
+            )}
         </Card>
     )
 }
