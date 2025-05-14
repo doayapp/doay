@@ -62,6 +62,7 @@ pub fn create_main_window(app: &App) -> Result<(), Box<dyn std::error::Error>> {
         .min_inner_size(800.0, 600.0)
         .inner_size(800.0, 600.0)
         .visible(false)
+        .center()
         .build()?;
     info!("Doay main window created");
 
@@ -102,6 +103,12 @@ fn set_tray<R: Runtime>(app: &App<R>) -> tauri::Result<()> {
             } => {
                 let app = tray.app_handle();
                 if let Some(window) = app.get_webview_window("main") {
+                    if let Ok(state) = window.is_minimized() {
+                        if state {
+                            let _ = window.unminimize();
+                        }
+                    }
+
                     let _ = window.show();
                     let _ = window.set_focus();
                 }
