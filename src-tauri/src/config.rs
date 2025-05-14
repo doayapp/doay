@@ -96,6 +96,7 @@ pub fn get_config() -> Config {
 }
 
 pub fn get_config_json() -> Value {
+    trace!("get_config_json triggered");
     json!(get_config())
 }
 

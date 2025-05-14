@@ -221,7 +221,6 @@ fn kill_process_by_pid(pid: u32) -> bool {
 
 #[tauri::command]
 fn get_config_json() -> Value {
-    trace!("get_config_json triggered");
     config::get_config_json()
 }
 
