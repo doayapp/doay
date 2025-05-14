@@ -5,7 +5,7 @@ import {
 } from '@mui/material'
 
 import { useTheme } from '../context/ThemeProvider.tsx'
-import { readAppConfig, setAppConfig } from '../util/invoke.ts'
+import { readAppConfig, saveAppConfig } from '../util/invoke.ts'
 import { DEFAULT_APP_CONFIG } from "../util/config.ts"
 import { isAutoStartEnabled, saveAutoStart } from "../util/tauri.ts"
 import { useDebounce } from "../hook/useDebounce.ts"
@@ -31,10 +31,10 @@ export default () => {
         await saveAutoStart(value)
     }
 
-    const handleAppLogLevel = (event: SelectChangeEvent) => {
+    const handleAppLogLevel = async (event: SelectChangeEvent) => {
         const value = event.target.value as AppConfig['app_log_level']
         setConfig(prevConfig => ({...prevConfig, app_log_level: value}))
-        setAppConfig('set_app_log_level', value)
+        await saveAppConfig('set_app_log_level', value)
     }
 
     return (

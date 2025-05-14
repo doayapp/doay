@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
     Card, Chip, Stack, Checkbox, Button, Typography, useMediaQuery,
@@ -26,7 +26,7 @@ import { useServerImport } from "../component/useServerImport.tsx"
 import {
     readAppConfig, readRayCommonConfig, saveRayConfig, getDoayAppDir,
     restartRay, readServerList, saveServerList, readRuleConfig, readRuleDomain,
-    readRuleModeList, readDnsConfig, readDnsModeList, setAppConfig,
+    readRuleModeList, readDnsConfig, readDnsModeList, saveAppConfig,
 } from "../util/invoke.ts"
 import { getConf } from "../util/serverConf.ts"
 import {
@@ -215,7 +215,7 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
                     await restartRay()
                 } else {
                     // 如果没有开启，则开启
-                    setAppConfig('set_ray_enable', true)
+                    await saveAppConfig('set_ray_enable', true)
                 }
             }
         })

@@ -72,11 +72,8 @@ export async function readAppConfig(): Promise<AppConfig | undefined> {
     return safeInvoke('get_config_json')
 }
 
-export function setAppConfig(cmd: string, value: string | number | boolean) {
-    (async () => {
-        const ok = await invokeBool(cmd, {value})
-        !ok && log.warn(`Failed to setConfig ${cmd}:`, value)
-    })()
+export function saveAppConfig(cmd: string, value: string | number | boolean) {
+    return invokeBool(cmd, {value})
 }
 
 export async function readRayConfig(): Promise<any> {

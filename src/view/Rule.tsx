@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
     Paper, Card, TextField, ToggleButtonGroup, ToggleButton, Drawer,
     Stack, Button, Alert, Typography, Switch,
@@ -15,9 +15,9 @@ import { LoadingCard } from "../component/useCard.tsx"
 import { useChip } from "../component/useChip.tsx"
 import { RuleAdvanced } from './RuleAdvanced.tsx'
 import { Dns } from './Dns.tsx'
-import { readAppConfig, readRuleConfig, readRuleDomain, readRuleModeList, saveRuleConfig, saveRuleDomain, setAppConfig } from "../util/invoke.ts"
+import { readAppConfig, readRuleConfig, readRuleDomain, readRuleModeList, saveRuleConfig, saveRuleDomain, saveAppConfig } from "../util/invoke.ts"
 import { useDebounce } from "../hook/useDebounce.ts"
-import { DEFAULT_RULE_CONFIG, DEFAULT_RULE_DOMAIN, DEFAULT_RULE_MODE_LIST } from "../util/config.ts"
+import { DEFAULT_APP_CONFIG, DEFAULT_RULE_CONFIG, DEFAULT_RULE_DOMAIN, DEFAULT_RULE_MODE_LIST } from "../util/config.ts"
 import { processDomain } from "../util/util.ts"
 import { updateProxyPAC } from "../util/proxy.ts"
 import { saveRayRule } from "../util/ray.ts"
@@ -52,14 +52,13 @@ const Rule: React.FC<NavProps> = ({setNavState}) => {
 
     const setGlobalProxyByAppConfig = async (isChange: boolean) => {
         if (!isChange) return
-        const config = await readAppConfig() as AppConfig
-        if (config) {
-            // 防止用户误操作，修改为最保险的配置
-            setTimeout(() => setAppConfig('set_auto_setup_pac', false), 0)
-            setTimeout(() => setAppConfig('set_auto_setup_socks', true), 200)
-            setTimeout(() => setAppConfig('set_auto_setup_http', false), 300)
-            setTimeout(() => setAppConfig('set_auto_setup_https', false), 600)
-        }
+
+        // 修改为全局代理时，关闭其他配置
+        const config = (await readAppConfig()) || DEFAULT_APP_CONFIG
+        if (config.auto_setup_pac) await saveAppConfig('set_auto_setup_pac', false)
+        if (config.auto_setup_http) await saveAppConfig('set_auto_setup_http', false)
+        if (config.auto_setup_https) await saveAppConfig('set_auto_setup_https', false)
+        if (!config.auto_setup_socks) await saveAppConfig('set_auto_setup_socks', true)
     }
 
     const handleDomainChange = (type: keyof RuleDomain) => (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Card, Divider, ListItem, ListItemButton, Typography, Switch, Tooltip } from '@mui/material'
 import HelpIcon from '@mui/icons-material/Help'
 
-import { readAppConfig, setAppConfig } from '../util/invoke.ts'
+import { readAppConfig, saveAppConfig } from '../util/invoke.ts'
 import { DEFAULT_APP_CONFIG } from "../util/config.ts"
 import { reloadProxyPAC } from "../util/proxy.ts"
 import { useDebounce } from "../hook/useDebounce.ts"
@@ -15,12 +15,10 @@ export default () => {
     }, 100)
     useEffect(loadConfig, [])
 
-    const handleAutoSetupPac = (value: boolean) => {
+    const handleAutoSetupPac = async (value: boolean) => {
         setConfig(prevConfig => ({...prevConfig, auto_setup_pac: value}))
-        setAppConfig('set_auto_setup_pac', value)
+        await saveAppConfig('set_auto_setup_pac', value)
         if (value) {
-            reloadProxyPAC()
-
             // 开启 PAC 自动配置时，关闭其他配置，避免影响 PAC 规则
             setConfig(prevConfig => ({
                 ...prevConfig,
@@ -28,22 +26,24 @@ export default () => {
                 auto_setup_http: false,
                 auto_setup_https: false,
             }))
+
+            await reloadProxyPAC()
         }
     }
 
-    const handleAutoSetupSocks = (value: boolean) => {
+    const handleAutoSetupSocks = async (value: boolean) => {
         setConfig(prevConfig => ({...prevConfig, auto_setup_socks: value}))
-        setAppConfig('set_auto_setup_socks', value)
+        await saveAppConfig('set_auto_setup_socks', value)
     }
 
-    const handleAutoSetupHttp = (value: boolean) => {
+    const handleAutoSetupHttp = async (value: boolean) => {
         setConfig(prevConfig => ({...prevConfig, auto_setup_http: value}))
-        setAppConfig('set_auto_setup_http', value)
+        await saveAppConfig('set_auto_setup_http', value)
     }
 
-    const handleAutoSetupHttps = (value: boolean) => {
+    const handleAutoSetupHttps = async (value: boolean) => {
         setConfig(prevConfig => ({...prevConfig, auto_setup_https: value}))
-        setAppConfig('set_auto_setup_https', value)
+        await saveAppConfig('set_auto_setup_https', value)
     }
 
     return (

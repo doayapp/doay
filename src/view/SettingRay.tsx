@@ -6,7 +6,7 @@ import {
 import HelpIcon from '@mui/icons-material/Help'
 
 import { validateIp, validatePort } from '../util/util.ts'
-import { checkPortAvailable, readAppConfig, setAppConfig, readRayCommonConfig, readRayConfig } from '../util/invoke.ts'
+import { checkPortAvailable, readAppConfig, saveAppConfig, readRayCommonConfig, readRayConfig } from '../util/invoke.ts'
 import {
     saveRayLogLevel, saveRayStatsEnable, saveRayStatsPort,
     saveRayHost, saveRaySocksPort, saveRayHttpPort,
@@ -80,7 +80,7 @@ export default () => {
         let c = await readAppConfig()
         if (c?.ray_host !== value) {
             setConfig(prevConfig => ({...prevConfig, ray_host: value}))
-            setAppConfig('set_ray_host', value)
+            await saveAppConfig('set_ray_host', value)
             await saveRayHost(value)
         }
     }, 1000)
@@ -101,7 +101,7 @@ export default () => {
             if (ok) {
                 setRaySocksPortErrorText('')
                 setConfig(prevConfig => ({...prevConfig, ray_socks_port: value}))
-                setAppConfig('set_ray_socks_port', value)
+                await saveAppConfig('set_ray_socks_port', value)
                 await saveRaySocksPort(value)
             }
         }
@@ -125,7 +125,7 @@ export default () => {
             if (ok) {
                 setRayHttpPortErrorText('')
                 setConfig(prevConfig => ({...prevConfig, ray_http_port: value}))
-                setAppConfig('set_ray_http_port', value)
+                await saveAppConfig('set_ray_http_port', value)
                 await saveRayHttpPort(value)
             }
         }

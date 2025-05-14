@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
     BottomNavigation, BottomNavigationAction, Button,
     Card, Paper, Stack, Typography, Switch, Tooltip,
@@ -15,7 +15,7 @@ import { useSnackbar } from "../component/useSnackbar.tsx"
 import {
     getNetworksJson, getSysInfoJson, invokeString,
     readAppConfig, readRayCommonConfig, readRayConfig,
-    safeInvoke, setAppConfig
+    safeInvoke, saveAppConfig
 } from "../util/invoke.ts"
 import { useDebounce } from "../hook/useDebounce.ts"
 import { formatSecond, formatTime, formatTimestamp, sizeToUnit } from "../util/util.ts"
@@ -212,7 +212,7 @@ const Home: React.FC<NavProps> = ({setNavState}) => {
         }
 
         setRayEnable(value)
-        setAppConfig('set_ray_enable', value)
+        await saveAppConfig('set_ray_enable', value)
     }
 
     // const pSx = {p: 2, borderRadius: 2, width: '100%', height: `calc(100vh - 20px)`, overflow: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center'}

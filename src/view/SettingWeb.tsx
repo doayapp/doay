@@ -6,7 +6,7 @@ import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 
 import { validateIp, validatePort } from '../util/util.ts'
-import { checkPortAvailable, readAppConfig, setAppConfig, openWebServerDir } from '../util/invoke.ts'
+import { checkPortAvailable, readAppConfig, saveAppConfig, openWebServerDir } from '../util/invoke.ts'
 import { DEFAULT_APP_CONFIG } from "../util/config.ts"
 import { useDebounce } from "../hook/useDebounce.ts"
 
@@ -22,16 +22,16 @@ export default () => {
     const [webPortError, setWebPortError] = useState(false)
     const [webPortErrorText, setWebPortErrorText] = useState('')
 
-    const handleWebServerEnable = (value: boolean) => {
+    const handleWebServerEnable = async (value: boolean) => {
         setConfig(prevConfig => ({...prevConfig, web_server_enable: value}))
-        setAppConfig('set_web_server_enable', value)
+        await saveAppConfig('set_web_server_enable', value)
     }
 
     const setWebServerHostDebounce = useDebounce(async (value: string) => {
         const c = await readAppConfig()
         if (c?.web_server_host !== value) {
             setConfig(prevConfig => ({...prevConfig, web_server_host: value}))
-            setAppConfig('set_web_server_host', value)
+            await saveAppConfig('set_web_server_host', value)
         }
     }, 1000)
     const handleWebIp = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,7 +51,7 @@ export default () => {
             if (ok) {
                 setWebPortErrorText('')
                 setConfig(prevConfig => ({...prevConfig, web_server_port: value}))
-                setAppConfig('set_web_server_port', value)
+                await saveAppConfig('set_web_server_port', value)
             }
         }
     }, 1500)
