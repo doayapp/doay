@@ -24,7 +24,7 @@ function sendLog(content: string) {
 export async function safeInvoke(apiName: string, options: any = {}) {
     if (!IS_TAURI) return
     try {
-        return invoke(apiName, options) as any
+        return await invoke(apiName, options) as any
     } catch (err) {
         log.error('Failed to invoke:', err)
         return
