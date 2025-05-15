@@ -15,6 +15,12 @@ import { calculateNetworkSpeed, sumNetworks } from "../util/network.ts"
 const SHOW_LOAD_AVERAGE = IS_MAC_OS || IS_LINUX
 const BASE = IS_MAC_OS ? 1000 : 1024
 
+// 硬件温度
+type TemperatureInfo = {
+    label: string;
+    temperature: string;
+};
+
 export const SysInfo = () => {
     const [sysInfo, setSysInfo] = useState<any>({})
     const [loadAverage, setLoadAverage] = useState<any>({})
@@ -39,7 +45,10 @@ export const SysInfo = () => {
         }
 
         let c = await getComponentsJson()
-        if (c) setComponents(c)
+        if (c) {
+            c = formatAndSortByLabel(c)
+            setComponents(c)
+        }
 
         let disks = await getDisksJson()
         if (disks) setDisk(sumDiskSpaces(disks))
@@ -68,6 +77,12 @@ export const SysInfo = () => {
         if (label === 'CPU Proximity') return 'CPU 表面'
         if (label === 'Battery') return '电池'
         return label
+    }
+
+    function formatAndSortByLabel(data: TemperatureInfo[]): TemperatureInfo[] {
+        return data
+            .map(item => ({...item, label: formatComponentsLabel(item.label)}))
+            .sort((a, b) => a.label.localeCompare(b.label))
     }
 
     const sumDiskSpaces = (disks: any[]) => {
@@ -228,7 +243,7 @@ export const SysInfo = () => {
                         <TableBody>
                             {components.map((row: any, key: number) => (
                                 <TableRow key={key}>
-                                    <TableCell>{formatComponentsLabel(row.label)}</TableCell>
+                                    <TableCell>{row.label}</TableCell>
                                     <TableCell align="right">{formatFloat(row.temperature, 1)} ℃</TableCell>
                                 </TableRow>
                             ))}
