@@ -7,8 +7,11 @@ use logger::{error, info};
 use std::fs;
 use tauri::menu::{Menu, MenuBuilder, MenuItem};
 use tauri::path::BaseDirectory;
-use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::tray::TrayIconBuilder;
 use tauri::{App, Manager, Runtime};
+
+#[cfg(not(target_os = "linux"))]
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconEvent};
 
 #[cfg(target_os = "macos")]
 use tauri::menu::{PredefinedMenuItem, Submenu};
