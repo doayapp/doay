@@ -139,6 +139,8 @@ const ServerCreate: React.FC<NavProps> = ({setNavState}) => {
         const isValid = validateServerRow(data, ps, setPsError, setAddError, setPortError, setIdError, setPwdError)
         if (!isValid) return
 
+        data.port = Number(data.port)
+
         let serverList = await readServerList() || []
         const newServer: ServerRow = {
             id: generateUniqueId(),

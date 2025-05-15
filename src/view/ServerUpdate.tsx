@@ -106,6 +106,8 @@ const ServerUpdate: React.FC<NavProps> = ({setNavState}) => {
         const isValid = validateServerRow(data, ps, setPsError, setAddError, setPortError, setIdError, setPwdError)
         if (!isValid) return
 
+        data.port = Number(data.port)
+
         let netServerList = serverList ? [...serverList] : []
         if (netServerList[key] && serverRow) {
             const newServer: ServerRow = {
