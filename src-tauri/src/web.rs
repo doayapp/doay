@@ -1,8 +1,9 @@
 use crate::config;
 use crate::dirs;
+use crate::sys_info;
 use actix_files::Files;
 use actix_web::middleware::Logger;
-use actix_web::{dev, rt, web, App, HttpServer};
+use actix_web::{dev, rt, web, App, HttpResponse, HttpServer, Responder};
 use chrono;
 use env_logger::Builder;
 use log::LevelFilter;
@@ -99,12 +100,24 @@ pub fn start() -> bool {
     true
 }
 
-async fn handle_proxy_pac() -> actix_web::HttpResponse {
+async fn proxy_pac_handle() -> HttpResponse {
     let pac_path = dirs::get_doay_web_server_dir().unwrap().join("proxy.js");
     match fs::read_to_string(&pac_path) {
-        Ok(content) => actix_web::HttpResponse::Ok().content_type("application/x-ns-proxy-autoconfig").body(content),
-        Err(_) => actix_web::HttpResponse::NotFound().body("proxy.js not found"),
+        Ok(content) => HttpResponse::Ok().content_type("application/x-ns-proxy-autoconfig").body(content),
+        Err(_) => HttpResponse::NotFound().body("proxy.js not found"),
     }
+}
+
+async fn get_disks_handler() -> impl Responder {
+    HttpResponse::Ok().json(sys_info::get_disks_json())
+}
+
+async fn get_networks_handler() -> impl Responder {
+    HttpResponse::Ok().json(sys_info::get_networks_json())
+}
+
+async fn get_components_handler() -> impl Responder {
+    HttpResponse::Ok().json(sys_info::get_components_json())
 }
 
 fn run_server() {
@@ -116,7 +129,10 @@ fn run_server() {
                 .wrap(Logger::new("%D %a %s \"%r\" %b \"%{Referer}i\" \"%{User-Agent}i\""))
                 .service(Files::new("/doay", dirs::get_doay_web_server_dir().unwrap().to_str().unwrap()).show_files_listing())
                 .route("/", web::get().to(|| async { "This is Doay Web Server!" }))
-                .route("/proxy.pac", web::get().to(handle_proxy_pac))
+                .route("/proxy.pac", web::get().to(proxy_pac_handle))
+                .route("/disks", web::get().to(get_disks_handler))
+                .route("/networks", web::get().to(get_networks_handler))
+                .route("/components", web::get().to(get_components_handler))
         })
         .bind(&server_address)
         {
