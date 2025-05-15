@@ -96,9 +96,11 @@ pub fn enable_socks_proxy() -> bool {
                 && execute_command(&format!("{} '{}' proxy.socks-port {}", NMCLI_CONNECTION, conn_name, config.ray_socks_port))
                 && execute_command(&format!("{} '{}' proxy.method manual", NMCLI_CONNECTION, conn_name))
         } else {
+            error!("No active NetworkManager connection found");
             false
         }
     } else {
+        error!("Auto proxy setup not supported: neither GSettings nor nmcli is available.");
         false
     }
 }
