@@ -5,6 +5,7 @@ use crate::ray;
 use crate::web;
 use logger::{error, info};
 use std::fs;
+use std::path::PathBuf;
 use tauri::menu::{Menu, MenuBuilder, MenuItem};
 use tauri::path::BaseDirectory;
 use tauri::tray::TrayIconBuilder;
