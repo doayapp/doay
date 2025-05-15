@@ -34,9 +34,7 @@ pub fn init(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
 
     let resource_dir = app.handle().path().resolve("ray", BaseDirectory::Resource)?;
     tauri::async_runtime::spawn(async move {
-        if let Err(e) = prepare_ray_resources(resource_dir) {
-            error!("Failed to prepare ray resources: {}", e);
-        } else {
+        if prepare_ray_resources(resource_dir) {
             start_services();
         }
     });
@@ -182,48 +180,93 @@ fn set_menu<R: Runtime>(app: &App<R>) -> tauri::Result<()> {
     Ok(())
 }
 
-fn prepare_ray_resources(resource_dir: std::path::PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+fn prepare_ray_resources(resource_dir: PathBuf) -> bool {
     if !resource_dir.exists() {
-        return Ok(());
+        return true;
     }
 
-    let target_dir = dirs::get_doay_ray_dir().ok_or("Failed to get doay ray directory")?;
+    let target_dir = match dirs::get_doay_ray_dir() {
+        Some(dir) => dir,
+        None => {
+            error!("Failed to get doay ray directory");
+            return false;
+        }
+    };
+
     if target_dir.exists() {
-        fs::remove_dir_all(&target_dir)?;
+        if let Err(e) = fs::remove_dir_all(&target_dir) {
+            error!("Failed to remove existing target directory {}: {}", target_dir.display(), e);
+            return false;
+        }
     }
-    fs::create_dir_all(&target_dir)?;
 
-    info!("Copying ray resources {} to {}", resource_dir.display(), target_dir.display());
-    for entry in fs::read_dir(&resource_dir)? {
-        let entry = entry?;
+    if let Err(e) = fs::create_dir_all(&target_dir) {
+        error!("Failed to create target directory {}: {}", target_dir.display(), e);
+        return false;
+    }
+
+    info!("Copying ray resources from {} to {}", resource_dir.display(), target_dir.display());
+
+    let entries = match fs::read_dir(&resource_dir) {
+        Ok(entries) => entries,
+        Err(e) => {
+            error!("Failed to read resource directory {}: {}", resource_dir.display(), e);
+            return false;
+        }
+    };
+
+    for entry in entries {
+        let entry = match entry {
+            Ok(e) => e,
+            Err(e) => {
+                error!("Failed to read entry in resource directory: {}", e);
+                return false;
+            }
+        };
+
         let path = entry.path();
         if path.is_file() {
             let dest = target_dir.join(entry.file_name());
-            fs::copy(&path, &dest)?;
 
-            // 适用于 macOS 和 Linux
-            #[cfg(unix)]
-            {
-                let mut perms = fs::metadata(&dest)?.permissions();
-                if entry.file_name() == "xray" {
-                    perms.set_mode(0o755);
-                } else {
-                    perms.set_mode(0o644);
-                }
-                fs::set_permissions(&dest, perms)?;
+            if let Err(e) = fs::copy(&path, &dest) {
+                error!("Failed to copy file {} to {}: {}", path.display(), dest.display(), e);
+                return false;
             }
 
-            // 适用于 Windows
+            #[cfg(unix)]
+            {
+                let mode = if entry.file_name() == "xray" { 0o755 } else { 0o644 };
+
+                if let Err(e) = fs::set_permissions(&dest, fs::Permissions::from_mode(mode)) {
+                    error!("Failed to set permissions for {}: {}", dest.display(), e);
+                    return false;
+                }
+            }
+
             #[cfg(windows)]
             {
-                let mut perms = fs::metadata(&dest)?.permissions();
+                let mut perms = match fs::metadata(&dest).map(|m| m.permissions()) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        error!("Failed to get permissions for {}: {}", dest.display(), e);
+                        return false;
+                    }
+                };
+
                 perms.set_readonly(false);
-                fs::set_permissions(&dest, perms)?;
+
+                if let Err(e) = fs::set_permissions(&dest, perms) {
+                    error!("Failed to set permissions for {}: {}", dest.display(), e);
+                    return false;
+                }
             }
         }
     }
 
-    fs::remove_dir_all(&resource_dir)?;
+    if let Err(e) = fs::remove_dir_all(&resource_dir) {
+        error!("Failed to remove resource directory {}: {}", resource_dir.display(), e);
+        return false;
+    }
 
-    Ok(())
+    true
 }
