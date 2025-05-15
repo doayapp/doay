@@ -72,7 +72,7 @@ export async function readAppConfig(): Promise<AppConfig | undefined> {
     return safeInvoke('get_config_json')
 }
 
-export function saveAppConfig(cmd: string, value: string | number | boolean) {
+export async function saveAppConfig(cmd: string, value: string | number | boolean) {
     return invokeBool(cmd, {value})
 }
 
