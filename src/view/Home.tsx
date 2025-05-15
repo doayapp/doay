@@ -12,7 +12,7 @@ const Home: React.FC<NavProps> = ({setNavState}) => {
     const [homeType, setHomeType] = useState('base')
 
     // const pSx = {p: 2, borderRadius: 2, width: '100%', height: `calc(100vh - 20px)`, overflow: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center'}
-    const pSx = {p: 2, borderRadius: 2, width: '100%', height: `calc(100vh - 20px)`, overflow: 'auto'}
+    const pSx = {p: 2, pt: 1, borderRadius: 2, width: '100%', height: `calc(100vh - 20px)`, overflow: 'auto'}
 
     return (<>
         <Paper className="scr-none" elevation={5} sx={pSx}>
