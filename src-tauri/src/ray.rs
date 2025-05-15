@@ -5,9 +5,11 @@ use once_cell::sync::Lazy;
 use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::fs;
+use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Child, Command, Stdio};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
+use std::thread;
 use std::time::Instant;
 
 // static CHILD_PROCESS: Mutex<Option<Child>> = Mutex::new(None);
@@ -21,6 +23,113 @@ const RAY: &str = "xray.exe";
 
 #[cfg(not(target_os = "windows"))]
 const RAY: &str = "xray";
+
+// Ray Server process manager
+pub struct ProcessManager {
+    child: Mutex<Option<Child>>,
+}
+
+impl ProcessManager {
+    pub fn new() -> Self {
+        Self { child: Mutex::new(None) }
+    }
+
+    pub fn start(&self) -> bool {
+        let mut child_lock = self.child.lock().unwrap();
+        if child_lock.is_some() {
+            error!("Ray Server is already running");
+            return false;
+        }
+
+        let ray_path = get_ray_exe();
+        let ray_conf = get_ray_config_path();
+        debug!("ray_path: {}", ray_path);
+        debug!("ray_conf: {}", ray_conf);
+
+        let mut cmd = command_new(&ray_path);
+        cmd.args(&["run", "-c", &ray_conf]).stdout(Stdio::piped()).stderr(Stdio::piped());
+
+        let mut child = match cmd.spawn() {
+            Ok(c) => c,
+            Err(e) => {
+                error!("Failed to start Ray Server: {:?}", e);
+                return false;
+            }
+        };
+
+        info!("Ray Server started with PID: {}", child.id());
+
+        let log_path = dirs::get_doay_logs_dir().unwrap().join("xray_server.log");
+
+        // 清空文件内容
+        let log_file = match OpenOptions::new().create(true).write(true).truncate(true).open(&log_path) {
+            Ok(f) => f,
+            Err(e) => {
+                error!("Failed to open log file: {}", e);
+                return false;
+            }
+        };
+
+        let log_file = Arc::new(Mutex::new(log_file));
+
+        if let Some(stdout) = child.stdout.take() {
+            let log_file = Arc::clone(&log_file);
+            thread::spawn(move || {
+                let reader = BufReader::new(stdout);
+                for line in reader.lines() {
+                    if let Ok(line) = line {
+                        let msg = format!("Ray Server stdout: {}\n", line.trim());
+                        trace!("{}", msg.trim());
+                        if let Ok(mut file) = log_file.lock() {
+                            let _ = file.write_all(msg.as_bytes());
+                        }
+                    }
+                }
+            });
+        }
+
+        if let Some(stderr) = child.stderr.take() {
+            let log_file = Arc::clone(&log_file);
+            thread::spawn(move || {
+                let reader = BufReader::new(stderr);
+                for line in reader.lines() {
+                    if let Ok(line) = line {
+                        let msg = format!("Ray Server stderr: {}\n", line.trim());
+                        error!("{}", msg.trim());
+                        if let Ok(mut file) = log_file.lock() {
+                            let _ = file.write_all(msg.as_bytes());
+                        }
+                    }
+                }
+            });
+        }
+
+        *child_lock = Some(child);
+        true
+    }
+
+    pub fn stop(&self) -> bool {
+        let mut child_lock = self.child.lock().unwrap();
+        if let Some(mut child) = child_lock.take() {
+            if let Err(e) = child.kill() {
+                error!("Failed to kill Ray Server: {}", e);
+                *child_lock = Some(child);
+                return false;
+            }
+            if let Err(e) = child.wait() {
+                error!("Failed to wait for Ray Server to terminate: {}", e);
+                return false;
+            }
+            info!("Ray Server stopped successfully");
+            true
+        } else {
+            error!("No Ray Server process to stop");
+            false
+        }
+    }
+}
+
+pub static PROCESS_MANAGER: Lazy<ProcessManager> = Lazy::new(ProcessManager::new);
 
 pub fn command_new(program: &str) -> Command {
     #[cfg(target_os = "windows")]
@@ -38,162 +147,15 @@ pub fn command_new(program: &str) -> Command {
 }
 
 pub fn start() -> bool {
-    /* if CHILD_PROCESS.lock().unwrap().is_some() {
-        error!("Ray Server is already running");
-        return false;
-    } */
-
-    std::thread::spawn(|| run_server());
+    // 异步启动，不阻塞调用线程
+    thread::spawn(|| {
+        PROCESS_MANAGER.start();
+    });
     true
 }
 
-fn run_server() {
-    let ray_path = get_ray_exe();
-    let ray_conf = get_ray_config_path();
-    debug!("ray_path: {}", ray_path);
-    debug!("ray_conf: {}", ray_conf);
-
-    let mut child = match command_new(&ray_path)
-        .args(&["run", "-c", &ray_conf])
-        .stdout(Stdio::piped()) // 捕获标准输出
-        .stderr(Stdio::piped()) // 捕获标准错误
-        .spawn()
-    {
-        Ok(child) => child,
-        Err(e) => {
-            error!("Failed to start Ray Server: {:?}", e);
-            return;
-        }
-    };
-
-    info!("Ray Server started with PID: {}", child.id());
-
-    let log_file_path = dirs::get_doay_logs_dir().unwrap().join("xray_server.log");
-    let mut log_file = match fs::OpenOptions::new().create(true).write(true).truncate(true).open(log_file_path) {
-        Ok(file) => file,
-        Err(e) => {
-            error!("Failed to open log file: {}", e);
-            return;
-        }
-    };
-
-    if let Some(stdout) = child.stdout.take() {
-        let reader = BufReader::new(stdout);
-        for line in reader.lines() {
-            if let Ok(line) = line {
-                let log_message = format!("Ray Server stdout: {}\n", line.trim());
-                trace!("{}", log_message.trim());
-                if let Err(e) = log_file.write_all(log_message.as_bytes()) {
-                    error!("Failed to write to log file: {}", e);
-                }
-            }
-        }
-    }
-
-    if let Some(stderr) = child.stderr.take() {
-        let reader = BufReader::new(stderr);
-        for line in reader.lines() {
-            if let Ok(line) = line {
-                let log_message = format!("Ray Server stderr: {}\n", line.trim());
-                error!("{}", log_message.trim());
-                if let Err(e) = log_file.write_all(log_message.as_bytes()) {
-                    error!("Failed to write to log file: {}", e);
-                }
-            }
-        }
-    }
-
-    // *CHILD_PROCESS.lock().unwrap() = Some(child);
-    info!("Ray Server exited");
-}
-
-pub fn start_speed_test_server(port: u16, filename: &str) -> bool {
-    let mut map = CHILD_PROCESS_MAP.lock().unwrap();
-    if map.contains_key(&port) {
-        warn!("Speed test server is already running, port: {}", port);
-        return false;
-    }
-
-    let ray_conf = dirs::get_doay_conf_dir().unwrap().join("speed_test").join(filename);
-    if !ray_conf.exists() {
-        error!("Failed to filename not exist: {}", filename);
-        return false;
-    }
-
-    let ray_path = get_ray_exe();
-    let ray_conf = ray_conf.to_str().unwrap().to_string();
-    debug!("Speed test server ray_path: {}", ray_path);
-    debug!("Speed test server ray_conf: {}", ray_conf);
-
-    let child = match command_new(&ray_path)
-        .args(&["run", "-c", &ray_conf])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn()
-    {
-        Ok(child) => child,
-        Err(e) => {
-            error!("Failed to start speed test server: {:?}", e);
-            return false;
-        }
-    };
-
-    info!("Speed test server started with PID: {}", child.id());
-
-    map.insert(port, Some(child));
-    true
-}
-
-pub fn stop_speed_test_server(port: u16) -> bool {
-    let mut map = CHILD_PROCESS_MAP.lock().unwrap();
-    if !map.contains_key(&port) {
-        warn!("Speed test server is not running, port: {}", port);
-        return false;
-    }
-
-    if let Some(child_option) = map.remove(&port) {
-        if let Some(mut child) = child_option {
-            if let Err(e) = child.kill() {
-                error!("Failed to kill speed test server: {}", e);
-                map.insert(port, Some(child)); // 如果 kill 失败，将子进程重新插入到 map 中
-                return false;
-            }
-            if let Err(e) = child.wait() {
-                error!("Failed to wait for speed test server to terminate: {}", e);
-                return false;
-            }
-            info!("Speed test server stopped successfully, map len: {}", map.len());
-            true
-        } else {
-            error!("Failed to retrieve child process from map, port: {}", port);
-            false
-        }
-    } else {
-        error!("Failed to remove server from map, port: {}", port);
-        false
-    }
-}
-
-// 开发过程中，经常自动停止并编译程序，导致无法停止 Command 运行的进程
-#[cfg(target_os = "linux")]
 pub fn stop() -> bool {
-    let child_process = CHILD_PROCESS.lock().unwrap().take();
-    if let Some(mut child) = child_process {
-        if let Err(e) = child.kill() {
-            error!("Failed to kill Ray Server: {}", e);
-            *CHILD_PROCESS.lock().unwrap() = Some(child);
-            return false;
-        }
-        if let Err(e) = child.wait() {
-            error!("Failed to wait for Ray Server to terminate: {}", e);
-            return false;
-        }
-        info!("Ray Server stopped successfully");
-        true
-    } else {
-        error!("Failed to take child process");
-        false
-    }
+    PROCESS_MANAGER.stop()
 }
 
 // 通过遍历的方式停止进程，保证完全停止进程
@@ -243,7 +205,6 @@ pub fn restart() -> bool {
         {
             stop()
         }
-
         #[cfg(not(target_os = "linux"))]
         {
             force_kill()
@@ -327,5 +288,72 @@ pub fn save_ray_config(content: &str) -> bool {
             error!("Failed to create config file: {}", e);
             false
         }
+    }
+}
+
+pub fn start_speed_test_server(port: u16, filename: &str) -> bool {
+    let mut map = CHILD_PROCESS_MAP.lock().unwrap();
+    if map.contains_key(&port) {
+        warn!("Speed test server is already running, port: {}", port);
+        return false;
+    }
+
+    let ray_conf = dirs::get_doay_conf_dir().unwrap().join("speed_test").join(filename);
+    if !ray_conf.exists() {
+        error!("Failed to filename not exist: {}", filename);
+        return false;
+    }
+
+    let ray_path = get_ray_exe();
+    let ray_conf = ray_conf.to_str().unwrap().to_string();
+    debug!("Speed test server ray_path: {}", ray_path);
+    debug!("Speed test server ray_conf: {}", ray_conf);
+
+    let child = match command_new(&ray_path)
+        .args(&["run", "-c", &ray_conf])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+    {
+        Ok(child) => child,
+        Err(e) => {
+            error!("Failed to start speed test server: {:?}", e);
+            return false;
+        }
+    };
+
+    info!("Speed test server started with PID: {}", child.id());
+
+    map.insert(port, Some(child));
+    true
+}
+
+pub fn stop_speed_test_server(port: u16) -> bool {
+    let mut map = CHILD_PROCESS_MAP.lock().unwrap();
+    if !map.contains_key(&port) {
+        warn!("Speed test server is not running, port: {}", port);
+        return false;
+    }
+
+    if let Some(child_option) = map.remove(&port) {
+        if let Some(mut child) = child_option {
+            if let Err(e) = child.kill() {
+                error!("Failed to kill speed test server: {}", e);
+                map.insert(port, Some(child)); // 如果 kill 失败，将子进程重新插入到 map 中
+                return false;
+            }
+            if let Err(e) = child.wait() {
+                error!("Failed to wait for speed test server to terminate: {}", e);
+                return false;
+            }
+            info!("Speed test server stopped successfully, map len: {}", map.len());
+            true
+        } else {
+            error!("Failed to retrieve child process from map, port: {}", port);
+            false
+        }
+    } else {
+        error!("Failed to remove server from map, port: {}", port);
+        false
     }
 }

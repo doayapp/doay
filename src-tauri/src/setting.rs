@@ -50,7 +50,7 @@ pub fn set_ray_enable(value: bool) -> bool {
         if value {
             ray::start() && network::setup_proxies()
         } else {
-            ray::force_kill() && network::disable_proxies()
+            ray::stop() && ray::force_kill() && network::disable_proxies()
         }
     } else {
         false
