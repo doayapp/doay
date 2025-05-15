@@ -12,9 +12,6 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Instant;
 
-// static CHILD_PROCESS: Mutex<Option<Child>> = Mutex::new(None);
-static CHILD_PROCESS_MAP: Lazy<Mutex<HashMap<u16, Option<Child>>>> = Lazy::new(|| Mutex::new(HashMap::new()));
-
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
 
@@ -163,34 +160,38 @@ pub fn force_kill() -> bool {
     let start = Instant::now();
     let mut sys = sysinfo::System::new_all();
     sys.refresh_all();
-    trace!("Sysinfo new and refresh all, time elapsed: {:?}", start.elapsed());
+    trace!("Sysinfo initialized and refreshed, elapsed: {:?}", start.elapsed());
 
     let mut success = true;
-    let mut n = 0;
+    let mut killed_count = 0;
+
     for (pid, process) in sys.processes() {
         // 特别注意：linux 系统下 name 获取的名字不会超过 15 个字符
         if process.name() == RAY {
-            // 防止误杀非 doay 运行的进程
-            let ray_exe = process.exe().map_or_else(
-                || {
-                    warn!("Failed to get executable path for process with PID: {}", pid);
-                    "".to_string()
-                },
-                |v| v.to_string_lossy().into_owned(),
-            );
-            if ray_exe == "" || (ray_exe.ends_with(RAY) && ray_exe.contains("doay")) {
-                n += 1;
-                if process.kill() {
-                    info!("Killed xray process with PID: {}", pid);
-                } else {
-                    error!("Failed to kill xray process with PID: {}", pid);
-                    success = false;
+            if let Some(exe_path) = process.exe() {
+                let exe_str = exe_path.to_string_lossy();
+                if exe_str.ends_with(RAY) && exe_str.contains("doay") {
+                    if process.kill() {
+                        info!("Killed xray process with PID: {}", pid);
+                        killed_count += 1;
+                    } else {
+                        error!("Failed to kill xray process with PID: {}", pid);
+                        success = false;
+                    }
                 }
+            } else {
+                warn!("Could not get exe path for PID: {}", pid);
             }
         }
     }
-    trace!("Time elapsed: {:?}, processes: {}, rays: {}", start.elapsed(), sys.processes().len(), n);
-    // *CHILD_PROCESS.lock().unwrap() = None;
+
+    trace!(
+        "Force kill complete. Elapsed: {:?}, total processes: {}, xray killed: {}",
+        start.elapsed(),
+        sys.processes().len(),
+        killed_count
+    );
+
     success
 }
 
@@ -200,18 +201,7 @@ pub fn restart() -> bool {
         return false;
     }
 
-    let kill_success = {
-        #[cfg(target_os = "linux")]
-        {
-            stop()
-        }
-        #[cfg(not(target_os = "linux"))]
-        {
-            force_kill()
-        }
-    };
-
-    let success = kill_success && start();
+    let success = stop() && force_kill() && start();
 
     if success {
         info!("Ray Server restarted successfully");
@@ -290,6 +280,8 @@ pub fn save_ray_config(content: &str) -> bool {
         }
     }
 }
+
+static CHILD_PROCESS_MAP: Lazy<Mutex<HashMap<u16, Option<Child>>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 
 pub fn start_speed_test_server(port: u16, filename: &str) -> bool {
     let mut map = CHILD_PROCESS_MAP.lock().unwrap();
