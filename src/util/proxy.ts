@@ -5,7 +5,7 @@ import { DEFAULT_APP_CONFIG, DEFAULT_RULE_CONFIG, DEFAULT_RULE_DOMAIN } from "./
 export async function reloadProxyPAC() {
     const ruleConfig = (await readRuleConfig()) || DEFAULT_RULE_CONFIG
     const ruleDomain = (await readRuleDomain()) || DEFAULT_RULE_DOMAIN
-    await updateProxyPAC(ruleConfig, ruleDomain, false)
+    await updateProxyPAC(ruleConfig, ruleDomain, true)
 }
 
 // 更新 proxy.js 文件

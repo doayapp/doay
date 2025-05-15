@@ -18,6 +18,7 @@ export default () => {
 
     const handleAutoSetupPac = async (value: boolean) => {
         setConfig(prevConfig => ({...prevConfig, auto_setup_pac: value}))
+        await saveAppConfig('set_auto_setup_pac', value)
 
         // 开启 PAC 自动配置时，关闭其他配置，避免影响 PAC 规则
         if (value) {
@@ -28,10 +29,8 @@ export default () => {
                 auto_setup_https: false,
             }))
 
-            await reloadProxyPAC()
+            setTimeout(reloadProxyPAC, 300)
         }
-
-        await saveAppConfig('set_auto_setup_pac', value)
     }
 
     const handleAutoSetupSocks = async (value: boolean) => {
