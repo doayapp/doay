@@ -28,6 +28,7 @@
     ],
     "windows": {
       "nsis": {
+        "installMode": "perMachine",
         "installerIcon": "icons/icon.ico",
         "languages": [
           "simpchinese"
