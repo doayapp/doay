@@ -22,7 +22,7 @@ export function getSpeedTestConf(row: ServerRow, appDir: string, rayConfig: RayC
                 tag: "socks-test-in",
                 protocol: "socks",
                 listen: "127.0.0.1",
-                port: port,
+                port: Number(port),
             }
         ],
         outbounds: [serverRowToConf(row) || {}]
@@ -155,7 +155,7 @@ function vmessRowToConf(row: VmessRow): any {
             vnext: [
                 {
                     address: row.add || '',
-                    port: row.port || '',
+                    port: Number(row.port) || '',
                     users: [
                         {
                             id: row.id || '',
@@ -207,7 +207,7 @@ function vlessRowToConf(row: VlessRow): any {
             vnext: [
                 {
                     address: row.add || '',
-                    port: row.port || '',
+                    port: Number(row.port) || '',
                     users: [
                         {
                             id: row.id || '',
@@ -234,7 +234,7 @@ function ssRowToConf(row: SsRow): any {
             servers: [
                 {
                     address: row.add || '',
-                    port: row.port || '',
+                    port: Number(row.port) || '',
                     method: row.scy || '',
                     password: row.pwd || '',
                 }
@@ -258,7 +258,7 @@ function trojanRowToConf(row: TrojanRow): any {
             servers: [
                 {
                     address: row.add || '',
-                    port: row.port || '',
+                    port: Number(row.port) || '',
                     password: row.pwd || ''
                 }
             ]
