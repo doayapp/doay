@@ -175,7 +175,8 @@ pub fn stop_speed_test_server(port: u16) -> bool {
 }
 
 // 开发过程中，经常自动停止并编译程序，导致无法停止 Command 运行的进程
-/* pub fn stop() -> bool {
+#[cfg(target_os = "linux")]
+pub fn stop() -> bool {
     let child_process = CHILD_PROCESS.lock().unwrap().take();
     if let Some(mut child) = child_process {
         if let Err(e) = child.kill() {
@@ -193,7 +194,7 @@ pub fn stop_speed_test_server(port: u16) -> bool {
         error!("Failed to take child process");
         false
     }
-} */
+}
 
 // 通过遍历的方式停止进程，保证完全停止进程
 pub fn force_kill() -> bool {
@@ -237,12 +238,26 @@ pub fn restart() -> bool {
         return false;
     }
 
-    let success = force_kill() && start();
+    let kill_success = {
+        #[cfg(target_os = "linux")]
+        {
+            stop()
+        }
+
+        #[cfg(not(target_os = "linux"))]
+        {
+            force_kill()
+        }
+    };
+
+    let success = kill_success && start();
+
     if success {
         info!("Ray Server restarted successfully");
     } else {
         error!("Ray Server restart failed");
     }
+
     success
 }
 
