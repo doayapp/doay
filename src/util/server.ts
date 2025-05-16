@@ -198,7 +198,23 @@ async function uriToVlessRow(uri: string): Promise<ServerRow> {
 
     const url = new URL(uri)
     if (url.search) {
+        // 非法 VLESS 的 URI 记录日志，方便排查问题
+        if (!url.hostname || !url.port || !url.username) {
+            log.warn(`Invalid VLESS URI: ${JSON.stringify({
+                host: url.hostname,
+                port: url.port,
+                user: url.username,
+                protocol: url.protocol,
+                pathname: url.pathname,
+                search: url.search,
+                hash: url.hash,
+                raw: uri,
+                userAgent: navigator.userAgent
+            })}`)
+        }
+
         if (url.hash) ps = url.hash.slice(1).trim()
+
         const p = new URLSearchParams(url.search)
         data = {
             add: url.hostname,
