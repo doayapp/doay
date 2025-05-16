@@ -31,27 +31,30 @@ async function parseHtml(s: string, name: string) {
         .map(uri => uri.replace(/&amp;/ig, '&'))
         .filter(uri => uri.length > 80)
 
-    log.info(`Extracted ${uniqueUris.length} URIs from subscription "${name}", type: html`)
+    log.info(`Subscription "${name}": Found ${uniqueUris.length} URIs, type: HTML`)
 
     if (filteredUris.length === 0) return
 
     const input = filteredUris.join('\n')
     const {newServerList, errNum, existNum, newNum} = await getNewServerList(input)
 
-    log.info(`Subscription "${name}" updated, errors: ${errNum}, existing: ${existNum}, new: ${newNum}`)
+    log.info(`Updated "${name}": ${newNum} new, ${existNum} exist, ${errNum} errors`)
 
     if (newNum > 0) {
         const saved = await saveServerList(newServerList)
         if (!saved) {
-            log.error(`Failed to save updated server list for subscription "${name}".`)
+            log.error(`Failed to save updated server list for "${name}"`)
         }
     }
 }
 
 async function parseJson(obj: any, name: string) {
     if ("servers" in obj && Array.isArray(obj.servers)) {
+        log.info(`Subscription "${name}": Found ${obj.servers.length} servers, type: JSON`)
+
         const {newServerList, errNum, existNum, newNum} = await getNewServerListBySub(obj.servers)
-        log.info(`Update subscription "${name}" JSON: ${errNum} Errors, ${existNum} Exists, ${newNum} New`)
+        log.info(`Updated "${name}": ${newNum} new, ${existNum} exist, ${errNum} errors`)
+
         if (newNum > 0) {
             const ok = await saveServerList(newServerList)
             if (!ok) {
