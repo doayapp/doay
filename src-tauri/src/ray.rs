@@ -237,11 +237,11 @@ pub fn get_ray_version() -> String {
     }
 }
 
-pub fn get_ray_exe() -> String {
+fn get_ray_exe() -> String {
     dirs::get_doay_ray_dir().unwrap().join(RAY).to_str().unwrap().to_string()
 }
 
-pub fn get_ray_config_path() -> String {
+fn get_ray_config_path() -> String {
     dirs::get_doay_conf_dir().unwrap().join("ray_config.json").to_str().unwrap().to_string()
 }
 
