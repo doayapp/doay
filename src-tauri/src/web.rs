@@ -33,9 +33,9 @@ fn init_logger() {
 
     Builder::from_default_env()
         .target(env_logger::Target::Pipe(Box::new(log_file)))
-        .filter_level(LevelFilter::Info) // 设置日志级别参数: Off Error Warn Info Debug Trace
-        .filter_module("actix_http::h1::dispatcher", LevelFilter::Off)
-        .filter_module("actix_server::worker", LevelFilter::Off)
+        .filter_level(LevelFilter::Off) // 设置日志级别参数: Off Error Warn Info Debug Trace
+        .filter_module("actix_server::server", LevelFilter::Info)
+        .filter_module("actix_web::middleware::logger", LevelFilter::Info)
         .format(|buf, record| {
             buf.write_fmt(format_args!(
                 "{} [{}] {}: {}\n",
