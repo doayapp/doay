@@ -54,9 +54,6 @@ pub fn init(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub fn create_main_window(app: &App) -> Result<(), Box<dyn std::error::Error>> {
-    #[cfg(target_os = "macos")]
-    let _ = app.handle().set_activation_policy(tauri::ActivationPolicy::Accessory);
-
     #[cfg(target_os = "linux")]
     let visible = true; // Linux 不隐藏，保证居中和最小化，最大化，关闭按钮正常
 
@@ -74,14 +71,21 @@ pub fn create_main_window(app: &App) -> Result<(), Box<dyn std::error::Error>> {
 
     info!("Doay main window created");
 
+    #[cfg(target_os = "macos")]
+    let _ = app.handle().set_activation_policy(tauri::ActivationPolicy::Accessory);
+
     #[cfg(any(target_os = "windows", target_os = "linux"))]
     let _ = main_window.set_skip_taskbar(true);
 
-    // 注册关闭事件：拦截并隐藏窗口
+    // 拦截关闭，隐藏窗口而非退出程序
     main_window.clone().on_window_event(move |event| {
         if let tauri::WindowEvent::CloseRequested { api, .. } = event {
             api.prevent_close();
-            main_window.hide().unwrap();
+
+            // 隐藏窗口
+            if let Err(e) = main_window.hide() {
+                log::error!("Failed to hide window on close request: {}", e);
+            }
         }
     });
 
