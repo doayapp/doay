@@ -51,7 +51,7 @@ sudo xattr -r -d com.apple.quarantine /Applications/Doay.app
 - 内存优化：相比 Swift、Golang、Java、C# 等语言，Rust 内存占用更低，性能更优
 - 代码健壮：强类型语言 Rust + TypeScript，显著降低 Bug 发生率
 - 维护便捷：现代化架构设计，TypeScript 构建前端，依托 Web 生态，保证高效开发和便捷维护
-- 灵活扩展：低耦合架构设计，可轻松移植 Flutter、Electron 等技术栈，并快速扩展至 iOS、Android 等平台
+- 灵活扩展：低耦合架构设计，可轻松移植 Flutter、Electron 等技术栈，可快速扩展至 iOS、Android 等平台
 
 ## 特色功能
 
