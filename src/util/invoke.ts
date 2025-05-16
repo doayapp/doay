@@ -2,23 +2,18 @@ import { invoke, isTauri } from '@tauri-apps/api/core'
 
 export const IS_TAURI = isTauri()
 export const log = {
-    error: (message: string, ...args: any[]) => {
-        console.log(`[ERROR] ${message}`, ...args)
-        sendLog(`[ERROR] ${message} ${args.map(arg => JSON.stringify(arg)).join(' ')}`)
-    },
-    warn: (message: string, ...args: any[]) => {
-        console.log(`[WARN] ${message}`, ...args)
-        sendLog(`[WARN] ${message} ${args.map(arg => JSON.stringify(arg)).join(' ')}`)
-    },
-    info: (message: string, ...args: any[]) => {
-        console.log(`[INFO] ${message}`, ...args)
-        sendLog(`[INFO] ${message} ${args.map(arg => JSON.stringify(arg)).join(' ')}`)
-    },
+    error: (message: string, ...args: any[]) => sendLog('error', message, args),
+    warn: (message: string, ...args: any[]) => sendLog('warn', message, args),
+    info: (message: string, ...args: any[]) => sendLog('info', message, args),
+    debug: (message: string, ...args: any[]) => sendLog('debug', message, args),
+    // trace: (message: string, ...args: any[]) => sendLog('trace', message, args),
 }
 
 // window?.__TAURI__?.core // 全局变量，增加了安全性风险，性能影响，页面加载变慢
-function sendLog(content: string) {
-    safeInvoke('send_log', {content}).catch(_ => 0)
+function sendLog(level: string, msg: string, args: any[]) {
+    console.log(`[${level.toUpperCase()}]`, msg, ...args)
+    msg = `${msg} ${args.map(arg => JSON.stringify(arg)).join(' ')}`
+    safeInvoke('send_log', {level, msg}).catch(_ => 0)
 }
 
 export async function safeInvoke(apiName: string, options: any = {}) {
