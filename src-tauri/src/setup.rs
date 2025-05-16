@@ -139,6 +139,11 @@ fn set_tray<R: Runtime>(app: &App<R>) -> tauri::Result<()> {
             .on_menu_event(|app, event| match event.id.as_ref() {
                 "show" => {
                     if let Some(window) = app.get_webview_window("main") {
+                        if let Ok(state) = window.is_minimized() {
+                            if state {
+                                let _ = window.unminimize();
+                            }
+                        }
                         let _ = window.show();
                         let _ = window.set_focus();
                     }
