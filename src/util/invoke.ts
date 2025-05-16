@@ -6,7 +6,7 @@ export const log = {
     warn: (msg: any, ...args: any[]) => sendLog('warn', msg, args),
     info: (msg: any, ...args: any[]) => sendLog('info', msg, args),
     debug: (msg: any, ...args: any[]) => sendLog('debug', msg, args),
-    // trace: (message: string, ...args: any[]) => sendLog('trace', message, args),
+    // trace: (msg: any, ...args: any[]) => sendLog('trace', msg, args),
 }
 
 // window?.__TAURI__?.core // 全局变量，增加了安全性风险，性能影响，页面加载变慢
