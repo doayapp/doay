@@ -35,23 +35,20 @@ pub fn init(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
 
     let resource_dir = app.handle().path().resolve("ray", BaseDirectory::Resource)?;
     tauri::async_runtime::spawn(async move {
+        let config = config::get_config();
+        if config.web_server_enable {
+            web::start();
+        }
+
         if prepare_ray_resources(resource_dir) {
-            start_services();
+            if config.ray_enable {
+                ray::start();
+                network::setup_proxies();
+            }
         }
     });
 
     Ok(())
-}
-
-fn start_services() {
-    let config = config::get_config();
-    if config.ray_enable {
-        ray::start();
-        network::setup_proxies();
-    }
-    if config.web_server_enable {
-        web::start();
-    }
 }
 
 pub fn create_main_window(app: &App) -> Result<(), Box<dyn std::error::Error>> {
