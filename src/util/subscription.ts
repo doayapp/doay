@@ -26,21 +26,24 @@ async function parseHtml(s: string, name: string) {
     const matches = s.match(uriRegex)
     if (!matches) return
 
-    const mArr = [...new Set(matches)]
-    const uriArr = []
-    for (let uri of mArr) {
-        uri = uri.replace(/&amp;/ig, '&')
-        if (uri.length > 80) uriArr.push(uri)
-    }
-    if (!uriArr.length) return
+    const uniqueUris = [...new Set(matches)]
+    const filteredUris = uniqueUris
+        .map(uri => uri.replace(/&amp;/ig, '&'))
+        .filter(uri => uri.length > 80)
 
-    const input = uriArr.join('\n')
+    log.info(`Extracted ${uniqueUris.length} URIs from subscription "${name}", type: html`)
+
+    if (filteredUris.length === 0) return
+
+    const input = filteredUris.join('\n')
     const {newServerList, errNum, existNum, newNum} = await getNewServerList(input)
-    log.info(`Update subscription "${name}" HTML: ${errNum} Errors, ${existNum} Exists, ${newNum} New`)
+
+    log.info(`Subscription "${name}" updated, errors: ${errNum}, existing: ${existNum}, new: ${newNum}`)
+
     if (newNum > 0) {
-        const ok = await saveServerList(newServerList)
-        if (!ok) {
-            log.error('Save ServerList Failed!')
+        const saved = await saveServerList(newServerList)
+        if (!saved) {
+            log.error(`Failed to save updated server list for subscription "${name}".`)
         }
     }
 }
