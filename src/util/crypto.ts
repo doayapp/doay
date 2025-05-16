@@ -37,7 +37,8 @@ export function decodeBase64(base64: string): string {
         const decoder = new TextDecoder()
         return decoder.decode(bytes)
     } catch (error) {
-        log.error('Base64 decode error:', error)
+        const shortBase64 = base64.length > 100 ? base64.slice(0, 100) + '...' : base64
+        log.error(`Failed to decode base64 input "${shortBase64}", error: ${error}`)
         return ''
     }
 }
