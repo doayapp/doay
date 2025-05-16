@@ -17,18 +17,38 @@ pub fn init() {
     }
 }
 
-pub fn write_web_interface_log(log_msg: &str) -> bool {
-    let log_file = dirs::get_doay_logs_dir().unwrap().join("doay_web_interface.log");
+fn get_level_rank(level: &str) -> u8 {
+    match level.to_lowercase().as_str() {
+        "none" => 0,
+        "error" => 1,
+        "warn" => 2,
+        "info" => 3,
+        "debug" => 4,
+        "trace" => 5,
+        _ => 3,
+    }
+}
+
+pub fn write_web_interface_log(level: &str, msg: &str) -> bool {
+    let config = config::get_config();
+    if get_level_rank(level) > get_level_rank(&config.app_log_level) {
+        return true; // 低于配置日志级别，不记录
+    }
+
+    let log_file = match dirs::get_doay_logs_dir() {
+        Some(dir) => dir.join("doay_web_interface.log"),
+        None => {
+            error!("Failed to get logs directory");
+            return false;
+        }
+    };
+
     match OpenOptions::new().create(true).append(true).open(&log_file) {
         Ok(file) => {
             let mut writer = BufWriter::new(file);
             let now = Local::now().format("%Y-%m-%d %H:%M:%S");
-            if let Err(e) = writeln!(writer, "{} {}", now, log_msg) {
-                error!("Failed to write log: {}", e);
-                return false;
-            }
-            if let Err(e) = writer.flush() {
-                error!("Failed to flush log writer: {}", e);
+            if writeln!(writer, "{} [{}] {}", now, level.to_uppercase(), msg).is_err() {
+                error!("Failed to write doay_web_interface.log");
                 return false;
             }
             true

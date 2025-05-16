@@ -85,8 +85,8 @@ fn get_doay_app_dir() -> String {
 }
 
 #[tauri::command]
-fn send_log(content: &str) -> bool {
-    log::write_web_interface_log(content)
+fn send_log(level: &str, msg: &str) -> bool {
+    log::write_web_interface_log(level, msg)
 }
 
 #[tauri::command]
