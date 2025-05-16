@@ -186,6 +186,15 @@ fn prepare_ray_resources(resource_dir: PathBuf) -> bool {
         return true;
     }
 
+    // 解决 linux 下，resource_dir 不让删除的权限问题
+    #[cfg(target_os = "linux")]
+    {
+        let ray_path = ray::get_ray_exe();
+        if ray_path.exists() {
+            return true;
+        }
+    }
+
     let target_dir = match dirs::get_doay_ray_dir() {
         Some(dir) => dir,
         None => {
