@@ -6,10 +6,12 @@ use crate::web;
 use logger::{error, info};
 use std::fs;
 use std::path::PathBuf;
-use tauri::menu::{Menu, MenuBuilder, MenuItem};
-use tauri::path::BaseDirectory;
-use tauri::tray::TrayIconBuilder;
-use tauri::{App, Manager, Runtime};
+use tauri::{
+    menu::{Menu, MenuBuilder, MenuItem},
+    path::BaseDirectory,
+    tray::TrayIconBuilder,
+    App, Manager, Runtime, WebviewUrl, WebviewWindowBuilder,
+};
 
 #[cfg(not(target_os = "linux"))]
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconEvent};
