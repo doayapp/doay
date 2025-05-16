@@ -55,14 +55,21 @@ pub fn create_main_window(app: &App) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(target_os = "macos")]
     let _ = app.handle().set_activation_policy(tauri::ActivationPolicy::Accessory);
 
+    #[cfg(target_os = "linux")]
+    let visible = true; // Linux 不隐藏，保证居中和最小化，最大化，关闭按钮正常
+
+    #[cfg(not(target_os = "linux"))]
+    let visible = false; // 其他平台默认隐藏窗口
+
     // more see: https://github.com/tauri-apps/tauri/blob/dev/crates/tauri/src/webview/webview_window.rs
-    let main_window = tauri::WebviewWindowBuilder::new(app, "main", tauri::WebviewUrl::App("index.html".into()))
+    let main_window = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
         .title("Doay")
         .min_inner_size(800.0, 600.0)
         .inner_size(800.0, 600.0)
-        .visible(false)
+        .visible(visible)
         .center()
         .build()?;
+
     info!("Doay main window created");
 
     #[cfg(any(target_os = "windows", target_os = "linux"))]
