@@ -31,8 +31,7 @@ async function parseHtml(s: string, name: string) {
         .map(uri => uri.replace(/&amp;/ig, '&'))
         .filter(uri => uri.length > 80)
 
-    log.info(`Subscription "${name}": Found ${uniqueUris.length} URIs, type: HTML`)
-
+    log.info(`Subscription "${name}": Found ${filteredUris.length} URIs, type: HTML`)
     if (filteredUris.length === 0) return
 
     const input = filteredUris.join('\n')
@@ -49,10 +48,11 @@ async function parseHtml(s: string, name: string) {
 }
 
 async function parseJson(obj: any, name: string) {
-    if ("servers" in obj && Array.isArray(obj.servers)) {
-        log.info(`Subscription "${name}": Found ${obj.servers.length} servers, type: JSON`)
+    const servers = obj?.servers
+    if (servers && Array.isArray(servers)) {
+        log.info(`Subscription "${name}": Found ${servers.length} servers, type: JSON`)
 
-        const {newServerList, errNum, existNum, newNum} = await getNewServerListBySub(obj.servers)
+        const {newServerList, errNum, existNum, newNum} = await getNewServerListBySub(servers)
         log.info(`Updated "${name}": ${newNum} new, ${existNum} exist, ${errNum} errors`)
 
         if (newNum > 0) {
