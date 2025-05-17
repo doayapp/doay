@@ -224,17 +224,16 @@ fn set_menu<R: Runtime>(app: &App<R>) -> tauri::Result<()> {
         }
     };
 
-    let ray_path = target_dir.join("xray");
-    if ray_path.exists() {
+    if target_dir.exists() {
         return true;
     }
 
-    if target_dir.exists() {
+    /*if target_dir.exists() {
         if let Err(e) = fs::remove_dir_all(&target_dir) {
             error!("Failed to remove existing target directory {}: {}", target_dir.display(), e);
             return false;
         }
-    }
+    }*/
 
     if let Err(e) = fs::create_dir_all(&target_dir) {
         error!("Failed to create target directory {}: {}", target_dir.display(), e);
