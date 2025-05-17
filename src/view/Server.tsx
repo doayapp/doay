@@ -64,6 +64,8 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
         if (d) {
             const list = d as ServerList
             setServerList(list)
+
+            await initConfig()
             serverAllSpeedTest(list)
         } else {
             setServerList([])
@@ -174,8 +176,6 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
     }
 
     const getServerConf = async (callback: (conf: any) => void) => {
-        await initConfig()
-
         if (!appDir.current || !config.current || !rayCommonConfig.current) return
         if (!ruleConfig.current || !ruleDomain.current || !ruleModeList.current) return
         if (!dnsConfig.current || !dnsModeList.current) return
@@ -302,7 +302,6 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
     }
 
     const testServerSpeed = async (server: ServerRow, port: number) => {
-        await initConfig()
         if (!appDir.current || !rayCommonConfig.current) return
 
         setServersSpeedTest(server.id, 'testStart')
