@@ -14,7 +14,7 @@
 
 ### 方法 2: 使用终端解除安全隔离
 
-通过以下命令，解除 macOS 对 Doay 的安全隔离限制：
+- 通过以下命令，解除 macOS 对 Doay 的安全隔离限制：
 
 ```bash
 sudo xattr -r -d com.apple.quarantine /Applications/Doay.app
