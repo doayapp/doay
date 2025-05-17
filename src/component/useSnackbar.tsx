@@ -29,11 +29,11 @@ export const useSnackbar = () => {
         timeoutRef.current = setTimeout(() => {
             setMessage(msg)
             setSeverity(severityLevel || 'info')
-            setAutoHideDuration(duration ?? 3000)
+            setAutoHideDuration(duration ?? 2000)
             setPosition(pos || 'top-center')
             setOpen(true)
             lastMessageRef.current = msg
-        }, 200)
+        }, 100)
     }
 
     const SnackbarComponent = () => {
