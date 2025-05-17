@@ -25,24 +25,6 @@ pub fn get_doay_web_server_dir() -> Option<std::path::PathBuf> {
     get_app_data_dir().map(|dir| dir.join("web_server"))
 }
 
-/* pub fn get_doay_ray_dir() -> Option<std::path::PathBuf> {
-    get_app_data_dir().map(|dir| dir.join("ray"))
-} */
-
-/*pub fn ensure_dirs() {
-    let dirs = vec![get_doay_conf_dir(), get_doay_logs_dir(), get_doay_web_server_dir(), get_doay_ray_dir()];
-
-    for dir in dirs {
-        if let Some(path) = dir {
-            if !path.exists() {
-                if let Err(e) = std::fs::create_dir_all(&path) {
-                    logger::error!("Failed to create directory: {}", e);
-                }
-            }
-        }
-    }
-}*/
-
 pub fn get_dirs_json() -> Value {
     json!({
         "executable_path": env::current_exe().ok(),
