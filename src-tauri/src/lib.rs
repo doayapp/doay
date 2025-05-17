@@ -54,8 +54,6 @@ fn set_focus(app: AppHandle) {
 
 #[tauri::command]
 fn quit(app: AppHandle) {
-    cleanup::exit_cleanly();
-    info!("Doay quit");
     app.exit(0);
 }
 
