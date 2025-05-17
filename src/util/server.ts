@@ -1,6 +1,6 @@
 import { log, readServerList } from './invoke.ts'
 import { decodeBase64, deepSafeDecodeURI, encodeBase64, safeDecodeURI, safeJsonParse, safeJsonStringify, hashJson } from './crypto.ts'
-import { generateUniqueId } from "./util.ts"
+import { generateUniqueId, urlToObject } from "./util.ts"
 
 // 排出重复数据
 export async function getNewServerList(input: string) {
@@ -55,18 +55,20 @@ export async function uriToServerRow(uri: string): Promise<ServerRow | null> {
         return null
     }
     try {
+        let row: ServerRow | null = null
         if (uri.startsWith('vmess://')) {
-            return uriToVmessRow(uri)
+            row = await uriToVmessRow(uri)
         } else if (uri.startsWith('vless://')) {
-            return uriToVlessRow(uri)
+            row = await uriToVlessRow(uri)
         } else if (uri.startsWith('ss://')) {
-            return uriToSsRow(uri)
+            row = await uriToSsRow(uri)
         } else if (uri.startsWith('trojan://')) {
-            return uriToTrojanRow(uri)
+            row = await uriToTrojanRow(uri)
         } else {
             log.error("Unsupported protocol, URI:", uri)
-            return null
         }
+        log.trace(`Parsed URI: ${JSON.stringify(row)}, URL Object: ${JSON.stringify(urlToObject(new URL(uri)))}, userAgent: ${navigator.userAgent}`)
+        return row
     } catch (e) {
         log.error("Failed to parse URI:", uri, e)
         return null
@@ -198,23 +200,7 @@ async function uriToVlessRow(uri: string): Promise<ServerRow> {
 
     const url = new URL(uri)
     if (url.search) {
-        // 非法 VLESS 的 URI 记录日志，方便排查问题
-        if (!url.hostname || !Number(url.port) || !url.username) {
-            log.warn(`Invalid VLESS URI: ${JSON.stringify({
-                hostname: url.hostname,
-                port: url.port,
-                username: url.username,
-                protocol: url.protocol,
-                pathname: url.pathname,
-                search: url.search,
-                hash: url.hash,
-                raw: uri,
-                userAgent: navigator.userAgent
-            })}`)
-        }
-
         if (url.hash) ps = url.hash.slice(1).trim()
-
         const p = new URLSearchParams(url.search)
         data = {
             add: url.hostname,

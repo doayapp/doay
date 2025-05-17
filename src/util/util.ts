@@ -49,6 +49,21 @@ export const calcPct = (used: number, total: number): string => {
     return `${percentage}%`
 }
 
+export function urlToObject(url: URL): Record<string, any> {
+    return {
+        href: url.href,
+        protocol: url.protocol,
+        username: url.username,
+        password: url.password,
+        hostname: url.hostname,
+        port: url.port,
+        pathname: url.pathname,
+        search: url.search,
+        searchParams: Object.fromEntries(url.searchParams.entries()),
+        hash: url.hash,
+    }
+}
+
 export function cutStr(str: unknown, maxLength: number = 50): string {
     const text = String(str)
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
