@@ -99,13 +99,11 @@ export const ScanPorts = () => {
         }
 
         if (scanning && !scanEnd) {
+            setTimeout(readLogs, 200)
             intervalRef.current = setInterval(readLogs, 1000)
         }
 
-        return () => {
-            clearInterval(intervalRef.current)
-            setTimeout(readLogs, 200)
-        }
+        return () => clearInterval(intervalRef.current)
     }, [scanning, scanEnd])
 
     // ==================================== textarea ====================================
