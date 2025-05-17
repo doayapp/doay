@@ -101,13 +101,13 @@ async function getNewServerListBySub(servers: any) {
 
 async function subToServerRow(server: any): Promise<ServerRow | null> {
     if (server.type === 'vmess') {
-        return subToVmessRow(server)
+        return await subToVmessRow(server)
     } else if (server.type === 'vless') {
-        return subToVlessRow(server)
+        return await subToVlessRow(server)
     } else if (server.type === 'ss') {
-        return subToSsRow(server)
+        return await subToSsRow(server)
     } else if (server.type === 'trojan') {
-        return subToTrojanRow(server)
+        return await subToTrojanRow(server)
     } else {
         log.error("Unsupported protocol, type:", server.type)
         return null
