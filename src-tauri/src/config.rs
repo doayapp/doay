@@ -77,7 +77,7 @@ pub fn init() {
         match load_config_from_file(config_path.to_str().unwrap()) {
             Ok(config) => {
                 *CONFIG.lock().unwrap() = config;
-                debug!("Config loaded successfully");
+                trace!("Config loaded successfully");
             }
             Err(e) => {
                 error!("Failed to load config file: {}", e);
@@ -125,7 +125,7 @@ where
     updater(&mut config);
     match save_config_to_file(&config, CONFIG_PATH.lock().unwrap().to_str().unwrap()) {
         Ok(_) => {
-            trace!("Config updated successfully");
+            // trace!("Config updated successfully");
             true
         }
         Err(e) => {
