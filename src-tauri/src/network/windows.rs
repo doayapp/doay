@@ -47,21 +47,24 @@ fn notify_proxy_change() -> bool {
 */
 
 pub fn command(command: &str, args: &[&str]) -> bool {
-    let status = match Command::new(command).creation_flags(0x08000000).args(args).status() {
-        Ok(status) => status,
-        Err(e) => {
-            error!("Failed to execute command: [{} {}], error: {}", command, args.join(" "), e);
-            return false;
+    match Command::new(command)
+        .creation_flags(0x08000000) // Windows-specific flag to hide window
+        .args(args)
+        .status()
+    {
+        Ok(status) if status.success() => {
+            info!("Command [{} {}] executed successfully", command, args.join(" "));
+            true
         }
-    };
-
-    if !status.success() {
-        error!("Command failed: [{} {}], exit status: {}", command, args.join(" "), status);
-        return false;
+        Ok(status) => {
+            error!("Command failed: [{} {}], exit status: {}", command, args.join(" "), status);
+            false
+        }
+        Err(e) => {
+            error!("Failed to start command: [{} {}], error: {}", command, args.join(" "), e);
+            false
+        }
     }
-
-    info!("Command [{} {}] executed successfully", command, args.join(" "));
-    true
 }
 
 pub fn enable_auto_proxy() -> bool {
