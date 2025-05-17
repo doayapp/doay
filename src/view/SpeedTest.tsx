@@ -150,6 +150,7 @@ export const SpeedTest = () => {
         setJitterValue('')
         setDownloadTestState(0)
         setUploadTestState(0)
+        setPubIpError(false)
         setPingError(false)
         setJitterError(false)
         setDownloadError(false)
