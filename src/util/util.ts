@@ -49,6 +49,11 @@ export const calcPct = (used: number, total: number): string => {
     return `${percentage}%`
 }
 
+export function cutStr(str: unknown, maxLength: number = 50): string {
+    const text = String(str)
+    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
+}
+
 export function getCurrentYMDHIS(): string {
     const now = new Date()
     const year = now.getFullYear()

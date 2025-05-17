@@ -14,7 +14,7 @@ import {
     safeInvoke, saveAppConfig
 } from "../util/invoke.ts"
 import { useDebounce } from "../hook/useDebounce.ts"
-import { formatTime, formatTimestamp, sizeToUnit } from "../util/util.ts"
+import { cutStr, formatTime, formatTimestamp, sizeToUnit } from "../util/util.ts"
 import { calculateNetworkSpeed, sumNetworks } from "../util/network.ts"
 import { useVisibility } from "../hook/useVisibility.ts"
 import { isVisibleWindow } from "../util/tauri.ts"
@@ -143,6 +143,9 @@ export default () => {
                     </TableRow>
                     <TableRow>
                         <TableCell>Rust 版本</TableCell><TableCell align="right">{rustVersion}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>UA 信息</TableCell><TableCell align="right">{cutStr(navigator.userAgent, 50)}</TableCell>
                     </TableRow>
                 </TableBody>
             </Table>
