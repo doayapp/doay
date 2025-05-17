@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
-    Button, Card, Switch, Stack, Typography, Tooltip,
+    Button, Card, Chip, Dialog, Switch, Stack, Typography, Tooltip, TextField,
     TableContainer, Table, TableBody, TableCell, TableRow,
 } from '@mui/material'
 import HelpIcon from '@mui/icons-material/Help'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import GitHubIcon from '@mui/icons-material/GitHub'
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 
 import { useSnackbar } from "../component/useSnackbar.tsx"
 import {
@@ -17,7 +18,7 @@ import { useDebounce } from "../hook/useDebounce.ts"
 import { cutStr, formatTime, formatTimestamp, sizeToUnit } from "../util/util.ts"
 import { calculateNetworkSpeed, sumNetworks } from "../util/network.ts"
 import { useVisibility } from "../hook/useVisibility.ts"
-import { isVisibleWindow } from "../util/tauri.ts"
+import { clipboardWriteText, isVisibleWindow } from "../util/tauri.ts"
 
 export default () => {
     const [rayEnable, setRayEnable] = useState(false)
@@ -111,9 +112,44 @@ export default () => {
         await saveAppConfig('set_ray_enable', value)
     }
 
+    const [openUserAgent, setOpenUserAgent] = useState(false)
+    const handleShowUserAgent = () => {
+        setOpenUserAgent(true)
+    }
+
+    const handleClose = () => {
+        setOpenUserAgent(false)
+    }
+
+    // ============================== copy ==============================
+    const [isCopied, setIsCopied] = useState(false)
+    const handleUserAgentCopy = async (content: string) => {
+        const ok = await clipboardWriteText(content)
+        if (!ok) return
+        setIsCopied(true)
+        setTimeout(() => setIsCopied(false), 2000)
+    }
+
     const {SnackbarComponent, showSnackbar} = useSnackbar()
     return (<>
         <SnackbarComponent/>
+
+        <Dialog open={openUserAgent} onClose={handleClose}>
+            <Stack spacing={1} sx={{p: 1, width: '600px'}}>
+                <Stack spacing={2} component={Card} elevation={5} sx={{p: 1, pt: 2}}>
+                    <TextField size="small" multiline disabled label="User Agent" value={navigator.userAgent}/>
+                </Stack>
+                <Stack>
+                    <div className="flex-between">
+                        <div>
+                            <Button variant="contained" color="info" startIcon={<ContentCopyIcon/>} onClick={() => handleUserAgentCopy(navigator.userAgent)}>复制</Button>
+                            {isCopied && <Chip label="复制成功" color="success" size="small" sx={{ml: 1}}/>}
+                        </div>
+                        <Button variant="contained" onClick={handleClose}>取消</Button>
+                    </div>
+                </Stack>
+            </Stack>
+        </Dialog>
 
         <Stack direction="row" elevation={2} component={Card} sx={{p: 1, justifyContent: 'space-between', alignItems: 'center'}}>
             <Typography variant="body1" sx={{paddingLeft: 1}}>Xray 服务</Typography>
@@ -145,7 +181,10 @@ export default () => {
                         <TableCell>Rust 版本</TableCell><TableCell align="right">{rustVersion}</TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>UA 信息</TableCell><TableCell align="right">{cutStr(navigator.userAgent, 50)}</TableCell>
+                        <TableCell>UA 信息</TableCell>
+                        <TableCell align="right">
+                            <div className="hover-effect" onClick={handleShowUserAgent}>{cutStr(navigator.userAgent, 20)}</div>
+                        </TableCell>
                     </TableRow>
                 </TableBody>
             </Table>

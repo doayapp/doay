@@ -79,6 +79,17 @@ body, html {
     pointer-events: auto;
 }
 
+.hover-effect {
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+.hover-effect:hover {
+    color: #007bff;
+    text-decoration: underline;
+}
+
 .panel-left {
     position: fixed;
     top: 0;
