@@ -32,6 +32,7 @@ import Log from "./view/Log.tsx"
 import LogDetail from "./view/LogDetail.tsx"
 import Tool from "./view/Tool.tsx"
 import Setting from "./view/Setting.tsx"
+import { useSnackbar } from "./component/useSnackbar.tsx"
 
 // const ServerImport = lazy(() => import("./view/ServerImport.tsx"))
 // const Tool = lazy(() => import("./view/Tool.tsx"))
@@ -62,8 +63,10 @@ const App: React.FC = () => {
         {path: '/setting', text: '设置', icon: <SettingsIcon/>}
     ]
 
+    const snackbar = useSnackbar()
     const isElapsed = useRef(false)
     useEffect(() => {
+        window.__SNACKBAR__ = snackbar
         setTimeout(async () => {
             if (isElapsed.current) return
             isElapsed.current = true
@@ -107,6 +110,7 @@ const App: React.FC = () => {
         <ThemeProvider>
             <GlobalStyles styles={{body: {userSelect: 'none'}}}/>
             <CssBaseline/>
+            {snackbar.SnackbarComponent()}
             <Router>
                 <Box sx={{position: 'fixed', left: 0, bottom: 15, width: 130, zIndex: 1}}>
                     <Stack spacing={0} sx={{justifyContent: "center", alignItems: "center"}}>

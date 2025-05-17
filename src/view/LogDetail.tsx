@@ -8,7 +8,6 @@ import {
 } from '@mui/material'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 
-import { useSnackbar } from '../component/useSnackbar.tsx'
 import { useVisibility } from "../hook/useVisibility.ts"
 import { readLogFile } from '../util/invoke.ts'
 import { formatLogName } from "../util/util.ts"
@@ -140,7 +139,7 @@ const LogDetail: React.FC<NavProps> = ({setNavState}) => {
             // 向上滚动加载更多
             if (isAtTop) {
                 if (prevLogContent.fileSize > 0 && prevLogContent.start === 0) {
-                    showSnackbar('已经到最顶部了')
+                    window.__SNACKBAR__.showSnackbar('已经到最顶部了', 'info', 2000, 'top-right')
                 } else if (prevLogContent.start > 0) {
                     fetchLogContent(reverse, prevLogContent.start - 1)
                 }
@@ -149,7 +148,7 @@ const LogDetail: React.FC<NavProps> = ({setNavState}) => {
             // 向下滚动加载更多
             if (isAtBottom) {
                 if (prevLogContent.fileSize > 0 && prevLogContent.end === prevLogContent.fileSize) {
-                    showSnackbar('已经到最底部了')
+                    window.__SNACKBAR__.showSnackbar('已经到最底部了', 'info', 2000, 'bottom-right')
                 } else if (prevLogContent.end > 0) {
                     fetchLogContent(reverse, prevLogContent.end + 1)
                 }
@@ -179,9 +178,7 @@ const LogDetail: React.FC<NavProps> = ({setNavState}) => {
         <pre style={style} dangerouslySetInnerHTML={{__html: logList[index] + "\n"}}/>
     )
 
-    const {SnackbarComponent, showSnackbar} = useSnackbar('br')
     return (<>
-        <SnackbarComponent/>
         <Stack direction="row" sx={{justifyContent: "space-between", alignItems: "center"}}>
             <Stack direction="row" spacing={2} sx={{justifyContent: "center", alignItems: "center"}}>
                 <Button sx={{p: 1, mr: 2, minWidth: 0, borderRadius: '50%', '&:hover': {bgColor: 'action.hover'}}}

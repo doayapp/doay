@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { Html5Qrcode } from 'html5-qrcode'
 import { Box, Card, TextField, Button, Stack, Dialog, DialogContent, DialogActions } from '@mui/material'
 import { useDebounce } from '../hook/useDebounce.ts'
-import { useSnackbar } from "../component/useSnackbar.tsx"
 import { PageHeader } from "../component/PageHeader.tsx"
 import { useServerImport } from "../component/useServerImport.tsx"
 import { clipboardReadImage } from "../util/tauri.ts"
@@ -20,7 +19,7 @@ const ServerImport: React.FC<NavProps> = ({setNavState}) => {
         setText(value)
     }
     const handleSubmit = useDebounce(async () => {
-        await useServerImport(text, showSnackbar, setError, () => {
+        await useServerImport(text, window.__SNACKBAR__.showSnackbar, setError, () => {
             setTimeout(() => navigate('/server'), 1000)
         })
     }, 300)
@@ -48,7 +47,7 @@ const ServerImport: React.FC<NavProps> = ({setNavState}) => {
         }
 
         setText(s)
-        if (err > 0) showSnackbar(`识别失败 ${err} 张, 成功 ${ok} 张`, 'warning')
+        if (err > 0) window.__SNACKBAR__.showSnackbar(`识别失败 ${err} 张, 成功 ${ok} 张`, 'warning')
         event.target.value = ''
     }
 
@@ -60,7 +59,7 @@ const ServerImport: React.FC<NavProps> = ({setNavState}) => {
             const imgSize = await image.size()
             const file = await createImageFromRGBA(imgRgba, imgSize.width, imgSize.height)
             if (!file) {
-                showSnackbar('转 canvas 出错', 'error')
+                window.__SNACKBAR__.showSnackbar('转 canvas 出错', 'error')
                 return
             }
 
@@ -69,10 +68,10 @@ const ServerImport: React.FC<NavProps> = ({setNavState}) => {
                 const r = await html5Qr.scanFile(file, true)
                 setText(r)
             } catch {
-                showSnackbar('没有识别到内容', 'error')
+                window.__SNACKBAR__.showSnackbar('没有识别到内容', 'error')
             }
         } catch {
-            showSnackbar('没有从剪切板读取到内容', 'error')
+            window.__SNACKBAR__.showSnackbar('没有从剪切板读取到内容', 'error')
         }
     }
 
@@ -148,9 +147,7 @@ const ServerImport: React.FC<NavProps> = ({setNavState}) => {
         }
     }
 
-    const {SnackbarComponent, showSnackbar, handleCloseSnackbar} = useSnackbar()
     return (<>
-        <SnackbarComponent/>
         <div id="hidden-reader" style={{display: 'none'}}></div>
         <Dialog open={open} onClose={handleStopCamera}>
             <DialogContent sx={{p: 2, pb: 0}}>
@@ -173,7 +170,7 @@ const ServerImport: React.FC<NavProps> = ({setNavState}) => {
             <Box sx={{p: 2}}>
                 <Stack direction="row" spacing={1} sx={{alignItems: 'center', mb: 2.5}}>
                     <Button variant="contained" color="secondary" className="qr-upload-but">
-                        <input multiple type="file" accept="image/*" ref={fileInputRef} onClick={handleCloseSnackbar} onChange={handleFileChange}/>
+                        <input multiple type="file" accept="image/*" ref={fileInputRef} onClick={window.__SNACKBAR__.handleSnackbarClose} onChange={handleFileChange}/>
                         选择二维码图片
                     </Button>
                     <Button variant="contained" color="success" onClick={handleReadClipboard}>从剪切板提取二维码</Button>

@@ -9,7 +9,6 @@ import GitHubIcon from '@mui/icons-material/GitHub'
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 
-import { useSnackbar } from "../component/useSnackbar.tsx"
 import {
     getNetworksJson, getSysInfoJson, readAppConfig, readRayConfig,
     safeInvoke, saveAppConfig
@@ -103,7 +102,7 @@ export default () => {
             if (!c || !c.inbounds || !c.outbounds) {
                 setErrorEnabled(true)
                 setTimeout(() => setErrorEnabled(false), 2500)
-                showSnackbar('无服务器可启用', 'error', 2000)
+                window.__SNACKBAR__.showSnackbar('无服务器可启用', 'error', 2000)
                 return
             }
         }
@@ -130,10 +129,7 @@ export default () => {
         setTimeout(() => setIsCopied(false), 2000)
     }
 
-    const {SnackbarComponent, showSnackbar} = useSnackbar()
     return (<>
-        <SnackbarComponent/>
-
         <Dialog open={openUserAgent} onClose={handleClose}>
             <Stack spacing={1} sx={{p: 1, width: '600px'}}>
                 <Stack spacing={2} component={Card} elevation={5} sx={{p: 1, pt: 2}}>

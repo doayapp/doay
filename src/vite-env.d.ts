@@ -4,6 +4,7 @@ type LogLevel = "none" | "error" | "warn" | "info" | "debug" | "trace";
 
 interface Window {
     __APP_LOG_LEVEL__?: LogLevel | undefined;
+    __SNACKBAR__: any;
 }
 
 interface AppConfig {
