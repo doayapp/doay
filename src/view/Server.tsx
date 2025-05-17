@@ -20,7 +20,6 @@ import OpenWithIcon from '@mui/icons-material/OpenWith'
 
 import { JsonCodeViewer } from "../component/CodeViewer.tsx"
 import { useDialog } from "../component/useDialog.tsx"
-import { useSnackbar } from "../component/useSnackbar.tsx"
 import { ErrorCard, LoadingCard } from "../component/useCard.tsx"
 import { useServerImport } from "../component/useServerImport.tsx"
 import {
@@ -94,12 +93,12 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
         try {
             const text = await clipboardReadText()
             if (text) {
-                await useServerImport(text, showSnackbar, null, loadList)
+                await useServerImport(text, window.__SNACKBAR__.showSnackbar, null, loadList)
             } else {
-                showSnackbar('剪切板没有内容', 'error')
+                window.__SNACKBAR__.showSnackbar('剪切板没有内容', 'error')
             }
         } catch (e) {
-            showSnackbar('读取剪切板失败', 'error')
+            window.__SNACKBAR__.showSnackbar('读取剪切板失败', 'error')
         }
     }
 
@@ -180,7 +179,7 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
         if (!ruleConfig.current || !ruleDomain.current || !ruleModeList.current) return
         if (!dnsConfig.current || !dnsModeList.current) return
         if (!serverList?.[selectedKey]) {
-            showSnackbar('获取配置信息失败', 'error')
+            window.__SNACKBAR__.showSnackbar('获取配置信息失败', 'error')
             return
         }
 
@@ -190,7 +189,7 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
             const routing = ruleToConf(ruleConfig.current, ruleDomain.current, ruleModeList.current)
             callback({...conf, ...dns, ...routing})
         } else {
-            showSnackbar('生成 conf 失败', 'error')
+            window.__SNACKBAR__.showSnackbar('生成 conf 失败', 'error')
         }
     }
 
@@ -230,7 +229,7 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
         })
         const ok = await saveServerList(newServerList)
         if (!ok) {
-            showSnackbar('设置启用失败', 'error')
+            window.__SNACKBAR__.showSnackbar('设置启用失败', 'error')
         }
         updateServerList(newServerList)
         return ok
@@ -254,7 +253,7 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
             const newServerList = serverList?.filter((_, index) => index !== selectedKey) || []
             const ok = await saveServerList(newServerList)
             if (!ok) {
-                showSnackbar('删除失败', 'error')
+                window.__SNACKBAR__.showSnackbar('删除失败', 'error')
             } else {
                 updateServerList(newServerList)
             }
@@ -269,7 +268,7 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
             const newServerList = serverList.filter((_, index) => !selectedServers.includes(index)) || []
             const ok = await saveServerList(newServerList)
             if (!ok) {
-                showSnackbar('删除失败', 'error')
+                window.__SNACKBAR__.showSnackbar('删除失败', 'error')
             } else {
                 updateServerList(newServerList)
             }
@@ -321,7 +320,7 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
         if (dragIsChange && serverList && serverList.length > 0) {
             setDragIsChange(false)
             const ok = await saveServerList(serverList)
-            if (!ok) showSnackbar('保存失败', 'error')
+            if (!ok) window.__SNACKBAR__.showSnackbar('保存失败', 'error')
             // console.log('save ok')
         }
     }, 300)
@@ -394,7 +393,7 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
 
         const ok = await saveServerList(newList)
         if (!ok) {
-            showSnackbar('保存排序失败', 'error')
+            window.__SNACKBAR__.showSnackbar('保存排序失败', 'error')
         } else {
             updateServerList(newList)
         }
@@ -408,11 +407,9 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
         setTimeout(() => setIsCopied(false), 1000)
     }
 
-    const {SnackbarComponent, showSnackbar} = useSnackbar()
     const {DialogComponent, dialogConfirm} = useDialog()
     const height = 'calc(100vh - 70px)'
     return (<>
-        <SnackbarComponent/>
         <DialogComponent/>
         <Stack direction="row" spacing={1} sx={{mb: 1}}>
             <Button variant="contained" color="secondary" startIcon={<AddIcon/>} onClick={handleCreate}>添加</Button>

@@ -7,7 +7,6 @@ import { hashJson } from "../util/crypto.ts"
 import { validateServerField, validateServerRow } from "../util/validate.ts"
 import { readServerList, saveServerList } from "../util/invoke.ts"
 import { getScy } from "../util/server.ts"
-import { useSnackbar } from "../component/useSnackbar.tsx"
 import { VmessForm } from './server/VmessForm.tsx'
 import { VlessForm } from './server/VlessForm.tsx'
 import { SsForm } from './server/SsForm.tsx'
@@ -156,22 +155,20 @@ const ServerCreate: React.FC<NavProps> = ({setNavState}) => {
         // 排重
         let isExist = serverList.some(server => server.hash === newServer.hash)
         if (isExist) {
-            showSnackbar('添加的服务器已存在', 'error')
+            window.__SNACKBAR__.showSnackbar('添加的服务器已存在', 'error')
             return
         }
 
         serverList = [newServer, ...serverList]
         const ok = await saveServerList(serverList)
         if (!ok) {
-            showSnackbar('添加失败', 'error')
+            window.__SNACKBAR__.showSnackbar('添加失败', 'error')
         } else {
             setTimeout(() => navigate(`/server`), 100)
         }
     }
 
-    const {SnackbarComponent, showSnackbar} = useSnackbar()
     return <>
-        <SnackbarComponent/>
         <Card>
             <PageHeader title="添加" backLink="/server"/>
             <Grid container spacing={2} sx={{p: 2, maxWidth: 800, m: 'auto'}}>

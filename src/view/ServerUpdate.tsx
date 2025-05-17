@@ -7,7 +7,6 @@ import { validateServerField, validateServerRow } from "../util/validate.ts"
 import { hashJson } from "../util/crypto.ts"
 import { readServerList, saveServerList } from "../util/invoke.ts"
 import { getScy } from "../util/server.ts"
-import { useSnackbar } from "../component/useSnackbar.tsx"
 import { LoadingCard, ErrorCard } from "../component/useCard.tsx"
 import { VmessForm } from './server/VmessForm.tsx'
 import { VlessForm } from './server/VlessForm.tsx'
@@ -124,7 +123,7 @@ const ServerUpdate: React.FC<NavProps> = ({setNavState}) => {
             // 排重
             const existKey = netServerList.findIndex((server, i) => server.hash === newServer.hash && i !== key)
             if (existKey !== -1) {
-                showSnackbar('修改的服务器内容已存在', 'error')
+                window.__SNACKBAR__.showSnackbar('修改的服务器内容已存在', 'error')
                 return
             }
 
@@ -132,20 +131,18 @@ const ServerUpdate: React.FC<NavProps> = ({setNavState}) => {
             netServerList.unshift(newServer)
             const ok = await saveServerList(netServerList)
             if (!ok) {
-                showSnackbar('修改失败', 'error')
+                window.__SNACKBAR__.showSnackbar('修改失败', 'error')
             } else {
                 setTimeout(() => navigate(`/server`), 100)
             }
         }
     }
 
-    const {SnackbarComponent, showSnackbar} = useSnackbar()
     return !serverList ? (
         <LoadingCard/>
     ) : errorMsg ? (
         <ErrorCard errorMsg={errorMsg}/>
     ) : (<>
-        <SnackbarComponent/>
         <Card>
             <PageHeader title="修改" backLink="/server"/>
             <Grid container spacing={2} sx={{p: 2, maxWidth: 800, m: 'auto'}}>

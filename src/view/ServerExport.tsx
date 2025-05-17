@@ -12,7 +12,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import SaveAltIcon from '@mui/icons-material/SaveAlt'
 
 import { PageHeader } from "../component/PageHeader.tsx"
-import { useSnackbar } from "../component/useSnackbar.tsx"
 import { ErrorCard, LoadingCard } from "../component/useCard.tsx"
 import { readServerList, saveTextFile } from "../util/invoke.ts"
 import { serverRowToBase64Uri, serverRowToUri } from "../util/server.ts"
@@ -102,7 +101,7 @@ const ServerExport: React.FC<NavProps> = ({setNavState}) => {
             content = uriList.join('\n')
         }
         const ok = await saveTextFile(path, content)
-        if (!ok) showSnackbar(`保存文件失败`, 'error')
+        if (!ok) window.__SNACKBAR__.showSnackbar(`保存文件失败`, 'error')
     }
 
     // ==================== copy uri ====================
@@ -110,9 +109,9 @@ const ServerExport: React.FC<NavProps> = ({setNavState}) => {
         const url = getUri(i)
         const ok = await clipboardWriteText(url)
         if (ok) {
-            showSnackbar(isBase64 ? '复制 Base64 URI 成功' : '复制 URL 成功', 'success')
+            window.__SNACKBAR__.showSnackbar(isBase64 ? '复制 Base64 URI 成功' : '复制 URL 成功', 'success')
         } else {
-            showSnackbar(`复制失败`, 'error')
+            window.__SNACKBAR__.showSnackbar(`复制失败`, 'error')
         }
     }
 
@@ -123,9 +122,9 @@ const ServerExport: React.FC<NavProps> = ({setNavState}) => {
 
         const ok = await clipboardWriteText(svgString)
         if (ok) {
-            showSnackbar(`复制代码成功`, 'success')
+            window.__SNACKBAR__.showSnackbar(`复制代码成功`, 'success')
         } else {
-            showSnackbar(`复制代码失败`, 'error')
+            window.__SNACKBAR__.showSnackbar(`复制代码失败`, 'error')
         }
     }
 
@@ -139,15 +138,15 @@ const ServerExport: React.FC<NavProps> = ({setNavState}) => {
             if (image) {
                 const ok = await clipboardWriteImage(image)
                 if (ok) {
-                    showSnackbar(`复制图片成功`, 'success')
+                    window.__SNACKBAR__.showSnackbar(`复制图片成功`, 'success')
                 } else {
-                    showSnackbar(`复制图片失败`, 'error')
+                    window.__SNACKBAR__.showSnackbar(`复制图片失败`, 'error')
                 }
             } else {
-                showSnackbar(`转换图片失败`, 'error')
+                window.__SNACKBAR__.showSnackbar(`转换图片失败`, 'error')
             }
         }).catch(error => {
-            showSnackbar(error, 'error')
+            window.__SNACKBAR__.showSnackbar(error, 'error')
         })
     }
 
@@ -180,9 +179,7 @@ const ServerExport: React.FC<NavProps> = ({setNavState}) => {
     }
 
     const [showKeys, setShowKeys] = useState<number[]>([0])
-    const {SnackbarComponent, showSnackbar} = useSnackbar()
     return <>
-        <SnackbarComponent/>
         {!serverList ? (
             <LoadingCard/>
         ) : errorMsg ? (
