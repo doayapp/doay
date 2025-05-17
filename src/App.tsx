@@ -44,7 +44,7 @@ import { useDebounce } from "./hook/useDebounce.ts"
 import { useVisibility } from "./hook/useVisibility.ts"
 import { useWindowFocused } from "./hook/useWindowFocused.ts"
 import { useNoBackspaceNav } from "./hook/useNoBackspaceNav.ts"
-import { hideWindow, showWindow } from "./util/tauri.ts"
+import { hideWindow, showAndFocusWindow } from "./util/tauri.ts"
 import { useInitLogLevel } from "./hook/useInitLogLevel.ts"
 
 let subscribeLastUpdate = 0
@@ -72,7 +72,7 @@ const App: React.FC = () => {
             isElapsed.current = true
 
             let isQuiet = await isQuietMode()
-            if (!isQuiet) await showWindow()
+            if (!isQuiet) await showAndFocusWindow()
             await appElapsed()
         }, 0)
     }, [])
