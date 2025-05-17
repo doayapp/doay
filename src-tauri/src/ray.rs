@@ -1,5 +1,6 @@
 use crate::config;
 use crate::dirs;
+use crate::setup;
 use logger::{debug, error, info, trace, warn};
 use once_cell::sync::Lazy;
 use serde_json::{json, Value};
@@ -238,7 +239,7 @@ pub fn get_ray_version() -> String {
 }
 
 fn get_ray_exe() -> String {
-    dirs::get_doay_ray_dir().unwrap().join(RAY).to_str().unwrap().to_string()
+    setup::get_doay_ray_dir().unwrap().join(RAY).to_str().unwrap().to_string()
 }
 
 fn get_ray_config_path() -> String {

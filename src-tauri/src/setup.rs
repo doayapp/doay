@@ -1,10 +1,9 @@
 use crate::config;
-use crate::dirs;
 use crate::network;
 use crate::ray;
 use crate::web;
 use logger::{error, info};
-use std::fs;
+use once_cell::sync::OnceCell;
 use std::path::PathBuf;
 use tauri::{
     menu::{Menu, MenuBuilder, MenuItem},
@@ -19,9 +18,6 @@ use tauri::tray::{MouseButton, MouseButtonState, TrayIconEvent};
 #[cfg(target_os = "macos")]
 use tauri::menu::{PredefinedMenuItem, Submenu};
 
-#[cfg(any(target_os = "macos", target_os = "linux"))]
-use std::os::unix::fs::PermissionsExt;
-
 pub fn init(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     if let Err(e) = create_main_window(app) {
         error!("Failed to create main window: {}", e);
@@ -35,22 +31,45 @@ pub fn init(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
         error!("Failed to set menu: {}", e);
     }
 
-    let resource_dir = app.handle().path().resolve("ray", BaseDirectory::Resource)?;
-    tauri::async_runtime::spawn(async move {
+    set_doay_ray_dir(app);
+
+    tauri::async_runtime::spawn(async {
         let config = config::get_config();
+
         if config.web_server_enable {
             web::start();
         }
 
-        if prepare_ray_resources(resource_dir) {
-            if config.ray_enable {
-                ray::start();
-                network::setup_proxies();
-            }
+        if config.ray_enable {
+            ray::start();
+            network::setup_proxies();
         }
     });
 
     Ok(())
+}
+
+static RAY_DIR: OnceCell<PathBuf> = OnceCell::new();
+
+pub fn set_doay_ray_dir(app: &App) {
+    match app.handle().path().resolve("ray", BaseDirectory::Resource) {
+        Ok(path) => {
+            if RAY_DIR.set(path).is_err() {
+                error!("RAY_DIR has already been initialized");
+            }
+        }
+        Err(err) => {
+            error!("Failed to resolve resource directory: {:?}", err);
+        }
+    }
+}
+
+pub fn get_doay_ray_dir() -> Option<PathBuf> {
+    if let Some(dir) = RAY_DIR.get() {
+        Some(dir.clone())
+    } else {
+        Some(PathBuf::from("./ray"))
+    }
 }
 
 pub fn create_main_window(app: &App) -> Result<(), Box<dyn std::error::Error>> {
@@ -196,7 +215,7 @@ fn set_menu<R: Runtime>(app: &App<R>) -> tauri::Result<()> {
     Ok(())
 }
 
-fn prepare_ray_resources(resource_dir: PathBuf) -> bool {
+/* fn prepare_ray_resources(resource_dir: PathBuf) -> bool {
     let target_dir = match dirs::get_doay_ray_dir() {
         Some(dir) => dir,
         None => {
@@ -252,6 +271,7 @@ fn prepare_ray_resources(resource_dir: PathBuf) -> bool {
 
             #[cfg(unix)]
             {
+                use std::os::unix::fs::PermissionsExt;
                 let mode = if entry.file_name() == "xray" { 0o755 } else { 0o644 };
 
                 if let Err(e) = fs::set_permissions(&dest, fs::Permissions::from_mode(mode)) {
@@ -280,10 +300,10 @@ fn prepare_ray_resources(resource_dir: PathBuf) -> bool {
         }
     }
 
-    /* if let Err(e) = fs::remove_dir_all(&resource_dir) {
+    if let Err(e) = fs::remove_dir_all(&resource_dir) {
         error!("Failed to remove resource directory {}: {}", resource_dir.display(), e);
         return false;
-    } */
+    }
 
     true
-}
+} */

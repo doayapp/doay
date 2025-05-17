@@ -25,9 +25,9 @@ pub fn get_doay_web_server_dir() -> Option<std::path::PathBuf> {
     get_app_data_dir().map(|dir| dir.join("web_server"))
 }
 
-pub fn get_doay_ray_dir() -> Option<std::path::PathBuf> {
+/* pub fn get_doay_ray_dir() -> Option<std::path::PathBuf> {
     get_app_data_dir().map(|dir| dir.join("ray"))
-}
+} */
 
 /*pub fn ensure_dirs() {
     let dirs = vec![get_doay_conf_dir(), get_doay_logs_dir(), get_doay_web_server_dir(), get_doay_ray_dir()];
