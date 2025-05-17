@@ -1,7 +1,13 @@
 /// <reference types="vite/client" />
 
+type LogLevel = "none" | "error" | "warn" | "info" | "debug" | "trace";
+
+interface Window {
+    __APP_LOG_LEVEL__?: LogLevel | undefined;
+}
+
 interface AppConfig {
-    app_log_level: "none" | "error" | "warn" | "info" | "debug" | "trace";
+    app_log_level: LogLevel;
 
     web_server_enable: boolean;
     web_server_host: string;

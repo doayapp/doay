@@ -1,4 +1,4 @@
-import { log, readServerList } from './invoke.ts'
+import { log, readServerList, shouldLog } from './invoke.ts'
 import { decodeBase64, deepSafeDecodeURI, encodeBase64, safeDecodeURI, safeJsonParse, safeJsonStringify, hashJson } from './crypto.ts'
 import { generateUniqueId, urlToObject } from "./util.ts"
 
@@ -67,7 +67,11 @@ export async function uriToServerRow(uri: string): Promise<ServerRow | null> {
         } else {
             log.error("Unsupported protocol, URI:", uri)
         }
-        log.trace(`Parsed URI: ${JSON.stringify(row)}, URL Object: ${JSON.stringify(urlToObject(new URL(uri)))}, userAgent: ${navigator.userAgent}`)
+
+        if (shouldLog('trace')) {
+            log.trace(`Parsed URI: ${JSON.stringify(row)}, URL Object: ${JSON.stringify(urlToObject(new URL(uri)))}, userAgent: ${navigator.userAgent}`)
+        }
+
         return row
     } catch (e) {
         log.error("Failed to parse URI:", uri, e)

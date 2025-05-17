@@ -44,11 +44,13 @@ import { useVisibility } from "./hook/useVisibility.ts"
 import { useWindowFocused } from "./hook/useWindowFocused.ts"
 import { useNoBackspaceNav } from "./hook/useNoBackspaceNav.ts"
 import { hideWindow, showWindow } from "./util/tauri.ts"
+import { useInitLogLevel } from "./hook/useInitLogLevel.ts"
 
 let subscribeLastUpdate = 0
 
 const App: React.FC = () => {
     useNoBackspaceNav()
+    useInitLogLevel()
 
     const navItems = [
         {path: '/', text: '首页', icon: <HomeIcon/>},

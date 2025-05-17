@@ -34,6 +34,7 @@ export default () => {
     const handleAppLogLevel = async (event: SelectChangeEvent) => {
         const value = event.target.value as AppConfig['app_log_level']
         setConfig(prevConfig => ({...prevConfig, app_log_level: value}))
+        window.__APP_LOG_LEVEL__ = value
         await saveAppConfig('set_app_log_level', value)
     }
 

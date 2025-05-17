@@ -1,6 +1,14 @@
 import { invoke, isTauri } from '@tauri-apps/api/core'
 
 export const IS_TAURI = isTauri()
+
+const levels = ["none", "error", "warn", "info", "debug", "trace"] as LogLevel[]
+
+export function shouldLog(level: LogLevel) {
+    const currentLevel = window.__APP_LOG_LEVEL__ || 'info'
+    return levels.indexOf(level) <= levels.indexOf(currentLevel)
+}
+
 export const log = {
     error: (msg: any, ...args: any[]) => sendLog('error', msg, args),
     warn: (msg: any, ...args: any[]) => sendLog('warn', msg, args),
@@ -10,7 +18,8 @@ export const log = {
 }
 
 // window?.__TAURI__?.core // 全局变量，增加了安全性风险，性能影响，页面加载变慢
-function sendLog(level: string, msg: any, args: any[]) {
+function sendLog(level: LogLevel, msg: any, args: any[]) {
+    if (!shouldLog(level)) return
     console.log(`[${level.toUpperCase()}]`, msg, ...args)
     msg = `${msg} ${args.map(arg => JSON.stringify(arg)).join(' ')}`
     safeInvoke('send_log', {level, msg}).catch(_ => 0)
