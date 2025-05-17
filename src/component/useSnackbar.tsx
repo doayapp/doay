@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Snackbar, Alert } from '@mui/material'
 
 export const useSnackbar = (position?: 'br' | 'tr' | 'top') => {
@@ -7,16 +7,33 @@ export const useSnackbar = (position?: 'br' | 'tr' | 'top') => {
     const [autoHideDuration, setAutoHideDuration] = useState<number>(3000)
     const [severity, setSeverity] = useState<'success' | 'info' | 'warning' | 'error'>('info')
 
+    const lastMessageRef = useRef<string | null>(null)
+    const timeoutRef = useRef<number | null>(null)
+
     const handleClose = (_?: any, reason?: string) => {
         if (reason === 'clickaway') return
         setOpen(false)
     }
 
-    const showSnackbar = (msg: string, severity?: 'success' | 'info' | 'warning' | 'error', duration?: number) => {
-        setMessage(msg)
-        setSeverity(severity || 'info')
-        setAutoHideDuration(duration ?? 3000)
-        setOpen(true)
+    const showSnackbar = (
+        msg: string,
+        severityLevel?: 'success' | 'info' | 'warning' | 'error',
+        duration?: number
+    ) => {
+        if (open && msg === lastMessageRef.current) return
+
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current)
+            timeoutRef.current = null
+        }
+
+        timeoutRef.current = setTimeout(() => {
+            setMessage(msg)
+            setSeverity(severityLevel || 'info')
+            setAutoHideDuration(duration ?? 3000)
+            setOpen(true)
+            lastMessageRef.current = msg
+        }, 100)
     }
 
     const SnackbarComponent = () => (
@@ -25,9 +42,11 @@ export const useSnackbar = (position?: 'br' | 'tr' | 'top') => {
             onClose={handleClose}
             autoHideDuration={autoHideDuration}
             anchorOrigin={
-                position === 'tr' ? {vertical: 'top', horizontal: 'right'} :
-                    position === 'br' ? {vertical: 'bottom', horizontal: 'right'} :
-                        {vertical: 'top', horizontal: 'center'}
+                position === 'tr'
+                    ? {vertical: 'top', horizontal: 'right'}
+                    : position === 'br'
+                        ? {vertical: 'bottom', horizontal: 'right'}
+                        : {vertical: 'top', horizontal: 'center'}
             }
             sx={{zIndex: 9999}}
         >
