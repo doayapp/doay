@@ -16,27 +16,27 @@ export const useServerImport = async (
     const okMsg = `导入成功: ${newNum} 条`
     const existMsg = `已存在: ${existNum} 条`
     setError && setError(existNum > 0)
-    if (newNum) {
+    if (newNum > 0) {
         const ok = await saveServerList(newServerList)
         if (!ok) {
             showSnackbar('导入失败', 'error')
         } else {
-            if (errNum) {
+            if (errNum > 0) {
                 showSnackbar(`${errMsg}，${okMsg}，${existMsg}`, 'error')
-            } else if (existNum) {
+            } else if (existNum > 0) {
                 showSnackbar(`${existMsg}，${okMsg}`, 'warning')
             } else {
                 showSnackbar(okMsg)
             }
             onSuccess && onSuccess()
         }
-    } else if (existNum) {
-        if (errNum) {
+    } else if (existNum > 0) {
+        if (errNum > 0) {
             showSnackbar(`${existMsg}，${errMsg}，${okMsg}`, 'error')
-        } else if (existNum) {
+        } else if (existNum > 0) {
             showSnackbar(`${existMsg}，${okMsg}`, 'warning')
         }
-    } else {
+    } else if (errNum > 0) {
         showSnackbar(errMsg, 'error')
     }
 }

@@ -33,7 +33,7 @@ export const useSnackbar = (position?: 'br' | 'tr' | 'top') => {
             setAutoHideDuration(duration ?? 3000)
             setOpen(true)
             lastMessageRef.current = msg
-        }, 100)
+        }, 200)
     }
 
     const SnackbarComponent = () => (
