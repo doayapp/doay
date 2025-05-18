@@ -74,7 +74,7 @@ export const SysInfo = () => {
 
     const formatComponentsLabel = (label: string) => {
         if (label === 'PECI CPU') return 'CPU 核心'
-        if (label === 'CPU Proximity') return 'CPU 表面'
+        if (label === 'CPU Proximity') return 'CPU 外壳'
         if (label === 'Battery') return '电池'
         return label
     }
