@@ -1,6 +1,6 @@
 import { log, readServerList, shouldLog } from './invoke.ts'
 import { decodeBase64, deepSafeDecodeURI, encodeBase64, safeDecodeURI, safeJsonParse, safeJsonStringify, hashJson } from './crypto.ts'
-import { generateUniqueId, urlToObject } from "./util.ts"
+import { cutStr, generateUniqueId, urlToObject } from "./util.ts"
 
 // 排出重复数据
 export async function getNewServerList(input: string) {
@@ -66,6 +66,11 @@ export async function uriToServerRow(uri: string): Promise<ServerRow | null> {
             row = await uriToTrojanRow(uri)
         } else {
             log.error("Unsupported protocol, URI:", uri)
+        }
+
+        if (row !== null) {
+            row.ps = row.ps || row.host || 'untitled'
+            row.ps = cutStr(row.ps, 50) // 限制长度，必要影响界面显示效果
         }
 
         if (shouldLog('trace')) {

@@ -66,7 +66,8 @@ export function urlToObject(url: URL): Record<string, any> {
 
 export function cutStr(str: unknown, maxLength: number = 50): string {
     const text = String(str)
-    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
+    const chars = Array.from(text)  // 正确处理 Unicode 字符
+    return chars.length > maxLength ? chars.slice(0, maxLength).join('') + '...' : text
 }
 
 export function getCurrentYMDHIS(): string {
