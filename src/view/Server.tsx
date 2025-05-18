@@ -185,18 +185,18 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
         }
 
         const conf = getConf(serverList[key], appDir.current, config.current, rayCommonConfig.current)
-        if (conf) {
-            const dns = dnsToConf(dnsConfig.current, dnsModeList.current)
-            const routing = ruleToConf(ruleConfig.current, ruleDomain.current, ruleModeList.current)
-            return {...conf, ...dns, ...routing}
-        } else {
+        if (!conf) {
             window.__SNACKBAR__.showSnackbar('生成 conf 失败', 'error')
             return false
         }
+
+        const dns = dnsToConf(dnsConfig.current, dnsModeList.current)
+        const routing = ruleToConf(ruleConfig.current, ruleDomain.current, ruleModeList.current)
+        return {...conf, ...dns, ...routing}
     }
 
     // ============================== enable ==============================
-    const handleEnable = async (key: number) => {
+    const handleEnable = useDebounce(async (key: number) => {
         const conf = await getServerConf(key)
         if (!conf) return
 
@@ -218,19 +218,22 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
         }
 
         handleMenuClose()
-    }
+    }, 500)
 
     const setServerEnable = async (key: number) => {
         if (!serverList) return false
+
         const newServerList = serverList.map((server, index) => {
             server.on = index === key ? 1 : 0
             return server
         })
+
         const ok = await saveServerList(newServerList)
         if (!ok) {
             window.__SNACKBAR__.showSnackbar('设置启用失败', 'error')
         }
         updateServerList(newServerList)
+
         return ok
     }
 
