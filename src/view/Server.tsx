@@ -3,20 +3,21 @@ import { useNavigate } from 'react-router-dom'
 import {
     Card, Chip, Stack, Checkbox, Button, Typography, useMediaQuery,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Menu, MenuItem, IconButton, Divider, Drawer, Tooltip, Paper,
+    Menu, MenuItem, IconButton, Drawer, Tooltip, Paper,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import FileUploadIcon from '@mui/icons-material/FileUpload'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import ContentPasteGoIcon from '@mui/icons-material/ContentPasteGo'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
-import DoneOutlineIcon from '@mui/icons-material/DoneOutline'
 import EditIcon from '@mui/icons-material/Edit'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import DeleteIcon from '@mui/icons-material/Delete'
 import DoubleArrowIcon from '@mui/icons-material/DoubleArrow'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import OpenWithIcon from '@mui/icons-material/OpenWith'
+import ToggleOnIcon from '@mui/icons-material/ToggleOn'
+import ToggleOffIcon from '@mui/icons-material/ToggleOff'
 
 import { JsonCodeViewer } from "../component/CodeViewer.tsx"
 import { useDialog } from "../component/useDialog.tsx"
@@ -152,7 +153,6 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
     }
 
     // ============================== init config ==============================
-    // 必须放内部，否则不会读取最新配置文件
     let appDir = useRef<string>('')
     let config = useRef<AppConfig | null>(null)
     let rayCommonConfig = useRef<RayCommonConfig | null>(null)
@@ -174,57 +174,56 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
         if (!dnsModeList.current) dnsModeList.current = await readDnsModeList() || DEFAULT_DNS_MODE_LIST
     }
 
-    const getServerConf = async (callback: (conf: any) => void) => {
+    const getServerConf = async (key: number) => {
         if (!appDir.current || !config.current || !rayCommonConfig.current) return
-        if (!ruleConfig.current || !ruleDomain.current || !ruleModeList.current) return
         if (!dnsConfig.current || !dnsModeList.current) return
-        if (!serverList?.[selectedKey]) {
+        if (!ruleConfig.current || !ruleDomain.current || !ruleModeList.current) return
+
+        if (!serverList?.[key]) {
             window.__SNACKBAR__.showSnackbar('获取配置信息失败', 'error')
-            return
+            return false
         }
 
-        const conf = getConf(serverList[selectedKey], appDir.current, config.current, rayCommonConfig.current)
+        const conf = getConf(serverList[key], appDir.current, config.current, rayCommonConfig.current)
         if (conf) {
             const dns = dnsToConf(dnsConfig.current, dnsModeList.current)
             const routing = ruleToConf(ruleConfig.current, ruleDomain.current, ruleModeList.current)
-            callback({...conf, ...dns, ...routing})
+            return {...conf, ...dns, ...routing}
         } else {
             window.__SNACKBAR__.showSnackbar('生成 conf 失败', 'error')
+            return false
         }
     }
 
     // ============================== enable ==============================
-    const handleEnable = async () => {
-        // if (serverList?.[selectedKey]?.on) {
-        //     handleMenuClose()
-        //     return
-        // }
+    const handleEnable = async (key: number) => {
+        const conf = await getServerConf(key)
+        if (!conf) return
 
-        await getServerConf(async (conf) => {
-            const ok = await saveRayConfig(conf)
-            if (!ok) return
+        const ok = await saveRayConfig(conf)
+        if (!ok) return
 
-            const setOk = await setServerEnable(selectedKey)
-            if (setOk) {
-                const conf = config.current
-                if (!conf) return
+        const setOk = await setServerEnable(key)
+        if (setOk) {
+            const conf = config.current
+            if (!conf) return
 
-                if (conf.ray_enable) {
-                    // 如果开启，则重启服务
-                    await restartRay()
-                } else {
-                    // 如果没有开启，则开启
-                    await saveAppConfig('set_ray_enable', true)
-                }
+            if (conf.ray_enable) {
+                // 如果开启，则重启服务
+                await restartRay()
+            } else {
+                // 如果没有开启，则开启
+                await saveAppConfig('set_ray_enable', true)
             }
-        })
+        }
+
         handleMenuClose()
     }
 
-    const setServerEnable = async (selectedKey: number) => {
+    const setServerEnable = async (key: number) => {
         if (!serverList) return false
         const newServerList = serverList.map((server, index) => {
-            server.on = index === selectedKey ? 1 : 0
+            server.on = index === key ? 1 : 0
             return server
         })
         const ok = await saveServerList(newServerList)
@@ -241,9 +240,11 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
     const handleCloseDrawer = () => setOpenDrawer(false)
     const handleViewConfig = async () => {
         setOpenDrawer(true)
-        await getServerConf(async (conf) => {
-            setRayConfigJson(JSON.stringify(conf, null, 2))
-        })
+
+        const conf = await getServerConf(selectedKey)
+        if (!conf) return
+
+        setRayConfigJson(JSON.stringify(conf, null, 2))
         handleMenuClose()
     }
 
@@ -481,7 +482,13 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
                                     <TableCell>{row.scy}</TableCell>
                                 </>)}
                                 <TableCell align="right" sx={{p: '8px'}}>
-                                    {Boolean(row.on) && (<Chip label="启用" color="warning" size="small" sx={{mr: 1}}/>)}
+                                    <Tooltip arrow title="启用" placement="top">
+                                        {Boolean(row.on) ? (
+                                            <IconButton sx={{color: 'info.main'}} onClick={_ => handleEnable(key)}><ToggleOnIcon fontSize="medium"/></IconButton>
+                                        ) : (
+                                            <IconButton sx={{color: 'grey.500'}} onClick={_ => handleEnable(key)}><ToggleOffIcon fontSize="medium"/></IconButton>
+                                        )}
+                                    </Tooltip>
                                     <Tooltip arrow title="排序" placement="top">
                                         <IconButton color="info" onClick={e => handleServerSortStart(e, key)}><OpenWithIcon/></IconButton>
                                     </Tooltip>
@@ -494,8 +501,6 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
             </TableContainer>
         )}
         <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-            <MenuItem onClick={handleEnable}><DoneOutlineIcon sx={{mr: 1}} fontSize="small"/>启用</MenuItem>
-            <Divider/>
             <MenuItem onClick={handleUpdate}><EditIcon sx={{mr: 1}} fontSize="small"/>修改</MenuItem>
             <MenuItem onClick={handleViewConfig}><VisibilityIcon sx={{mr: 1}} fontSize="small"/>配置</MenuItem>
             <MenuItem onClick={handleDelete}><DeleteIcon sx={{mr: 1}} fontSize="small"/>删除</MenuItem>
