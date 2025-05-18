@@ -1,6 +1,6 @@
 [package]
 name = "doay"
-version = "1.0.3"
+version = "1.0.4"
 description = "A Doay App"
 authors = ["Doay"]
 edition = "2021"
