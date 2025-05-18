@@ -143,7 +143,7 @@ fn set_tray<R: Runtime>(app: &App<R>) -> tauri::Result<()> {
                         }
                         let _ = window.show();
                         let _ = window.set_focus();
-                        let _ = window.set_always_on_top(true); // 让窗口置顶，防止被遮挡
+                        // let _ = window.set_always_on_top(true); // 让窗口置顶，防止被遮挡
                     }
                 }
                 _ => {}
@@ -171,7 +171,7 @@ fn set_tray<R: Runtime>(app: &App<R>) -> tauri::Result<()> {
 
                         let _ = window.show();
                         let _ = window.set_focus();
-                        let _ = window.set_always_on_top(true); // 让窗口置顶，防止被遮挡
+                        // let _ = window.set_always_on_top(true); // 让窗口置顶，防止被遮挡
 
                         // 延迟取消置顶 + 再次聚焦（增强兼容性）
                         tauri::async_runtime::spawn({
@@ -179,7 +179,7 @@ fn set_tray<R: Runtime>(app: &App<R>) -> tauri::Result<()> {
                             async move {
                                 std::thread::sleep(std::time::Duration::from_millis(200));
                                 let _ = window.set_focus();
-                                let _ = window.set_always_on_top(false);
+                                // let _ = window.set_always_on_top(true);
                             }
                         });
                     }

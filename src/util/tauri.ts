@@ -56,7 +56,7 @@ export async function showAndFocusWindow() {
         const window = getCurrentWindow()
         await window.show()
         await window.setFocus()
-        await window.setAlwaysOnTop(true)
+        // await window.setAlwaysOnTop(true)
         return true
     } catch (e) {
         log.error(`Tauri show Window error: ${e}`)

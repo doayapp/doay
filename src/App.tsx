@@ -44,7 +44,7 @@ import { useDebounce } from "./hook/useDebounce.ts"
 import { useVisibility } from "./hook/useVisibility.ts"
 import { useWindowFocused } from "./hook/useWindowFocused.ts"
 import { useNoBackspaceNav } from "./hook/useNoBackspaceNav.ts"
-import { hideWindow, setAlwaysOnTopWindow, setFocusWindow, showAndFocusWindow } from "./util/tauri.ts"
+import { hideWindow, setFocusWindow, showAndFocusWindow } from "./util/tauri.ts"
 import { useInitLogLevel } from "./hook/useInitLogLevel.ts"
 import { IS_LINUX, sleep } from "./util/util.ts"
 
@@ -80,7 +80,6 @@ const App: React.FC = () => {
             if (IS_LINUX) {
                 await sleep(200)
                 await setFocusWindow()
-                await setAlwaysOnTopWindow(true)
             }
         }, 0)
     }, [])
