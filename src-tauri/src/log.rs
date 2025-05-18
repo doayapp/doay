@@ -46,7 +46,7 @@ pub fn write_web_interface_log(level: &str, msg: &str) -> bool {
     match OpenOptions::new().create(true).append(true).open(&log_file) {
         Ok(file) => {
             let mut writer = BufWriter::new(file);
-            let now = Local::now().format("%Y-%m-%d %H:%M:%S");
+            let now = Local::now().format("%Y-%m-%d %H:%M:%S%.3f");
             if writeln!(writer, "{} [{}] {}", now, level.to_uppercase(), msg).is_err() {
                 error!("Failed to write doay_web_interface.log");
                 return false;

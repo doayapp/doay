@@ -113,7 +113,7 @@ pub fn log(level: LogLevel, message: &str) -> Result<(), io::Error> {
         return Ok(());
     }
 
-    let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S%.3f").to_string();
     let log_message = format!("{} [{}] {}\n", timestamp, level_str(level), message);
 
     // 输出到控制台
