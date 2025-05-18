@@ -70,7 +70,7 @@ export async function uriToServerRow(uri: string): Promise<ServerRow | null> {
 
         if (row !== null) {
             row.ps = row.ps || row.host || 'untitled'
-            row.ps = cutStr(row.ps, 50) // 限制长度，必要影响界面显示效果
+            row.ps = cutStr(row.ps, 50) // 限制长度，避免影响界面显示
         }
 
         if (shouldLog('trace')) {

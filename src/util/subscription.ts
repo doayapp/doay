@@ -22,7 +22,7 @@ export async function getSubscription(row: SubscriptionRow) {
 }
 
 async function parseHtml(s: string, name: string) {
-    const uriRegex = /(?:vmess|vless|ss|trojan):\/\/[^\s"'<>\n]+/g
+    const uriRegex = /(?:vmess|vless|ss|trojan):\/\/[^\s"'<>\\]+/g
     const matches = s.match(uriRegex)
     if (!matches) return
 
