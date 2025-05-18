@@ -1,7 +1,7 @@
 use crate::config;
 use crate::dirs;
 use chrono::{Local, TimeZone};
-use logger::{debug, error};
+use logger::{trace, error};
 use serde_json::{json, Value};
 use std::fs::{self, File, OpenOptions};
 use std::io::{BufWriter, Read, Seek, SeekFrom, Write};
@@ -105,7 +105,7 @@ fn format_timestamp(modified_time: std::time::SystemTime) -> String {
 }
 
 pub fn read_log_file(filename: &str, reverse: bool, start_position: i64) -> Value {
-    debug!("read: {}, reverse: {}, start_position: {}", filename, reverse, start_position);
+    trace!("read: {}, reverse: {}, start_position: {}", filename, reverse, start_position);
     // const DEFAULT_READ_SIZE: u64 = 1024 * 100; // 100KB
     const DEFAULT_READ_SIZE: u64 = 1000 * 100; // 100KB
 
