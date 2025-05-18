@@ -22,13 +22,13 @@ export async function getSubscription(row: SubscriptionRow) {
 }
 
 async function parseHtml(s: string, name: string) {
-    const uriRegex = /(?:vmess|vless|ss|trojan):\/\/[^\s"'<>]+/g
+    const uriRegex = /(?:vmess|vless|ss|trojan):\/\/[^\s"'<>\n]+/g
     const matches = s.match(uriRegex)
     if (!matches) return
 
     const uniqueUris = [...new Set(matches)]
     const filteredUris = uniqueUris
-        .map(uri => uri.replace(/&amp;/ig, '&'))
+        .map(uri => uri.replace(/&amp;/ig, '&').trim())
         .filter(uri => uri.length > 80)
 
     log.info(`Subscription "${name}": Found ${filteredUris.length} URIs, type: HTML`)
