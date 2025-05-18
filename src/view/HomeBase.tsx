@@ -187,9 +187,9 @@ export default () => {
         </TableContainer>
 
         <Stack direction="row" justifyContent="center" spacing={2}>
-            <Button startIcon={<OpenInNewIcon/>} variant="contained" target="_blank" href="https://doay.pages.dev">官方网站</Button>
-            <Button startIcon={<GitHubIcon/>} variant="contained" target="_blank" href="https://github.com/doayapp/doay">查看源码</Button>
-            <Button startIcon={<CloudDownloadIcon/>} variant="contained" target="_blank" href="https://github.com/doayapp/doay/releases">最新版本</Button>
+            <Button startIcon={<OpenInNewIcon/>} color="success" variant="contained" target="_blank" href="https://doay.pages.dev">官方网站</Button>
+            <Button startIcon={<GitHubIcon/>} color="info" variant="contained" target="_blank" href="https://github.com/doayapp/doay">查看源码</Button>
+            <Button startIcon={<CloudDownloadIcon/>} color="warning" variant="contained" target="_blank" href="https://github.com/doayapp/doay/releases">最新版本</Button>
         </Stack>
 
         <TableContainer elevation={2} component={Card}>
