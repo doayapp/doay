@@ -415,6 +415,7 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
     const height = 'calc(100vh - 70px)'
     return (<>
         <DialogComponent/>
+
         <Stack direction="row" spacing={1} sx={{mb: 1}}>
             <Button variant="contained" color="secondary" startIcon={<AddIcon/>} onClick={handleCreate}>添加</Button>
             <Button variant="contained" color="success" startIcon={<ContentPasteGoIcon/>} onClick={handleClipboardImport}>剪切板导入</Button>
@@ -425,6 +426,7 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
                 <Button variant="contained" color="warning" onClick={handleSpeedTest}>测速</Button>
             </>)}
         </Stack>
+
         {!serverList ? (
             <LoadingCard height={height}/>
         ) : serverList.length === 0 ? (
@@ -503,11 +505,13 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
                 </Table>
             </TableContainer>
         )}
+
         <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
             <MenuItem onClick={handleUpdate}><EditIcon sx={{mr: 1}} fontSize="small"/>修改</MenuItem>
             <MenuItem onClick={handleViewConfig}><VisibilityIcon sx={{mr: 1}} fontSize="small"/>配置</MenuItem>
             <MenuItem onClick={handleDelete}><DeleteIcon sx={{mr: 1}} fontSize="small"/>删除</MenuItem>
         </Menu>
+
         <Drawer open={openDrawer} anchor="right" onClose={handleCloseDrawer} transitionDuration={0}>
             <Stack sx={{p: 1, width: 'calc(100vw - 140px)'}} spacing={1}>
                 <div className="flex-between">
