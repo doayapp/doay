@@ -28,12 +28,35 @@ export async function showWindow() {
     }
 }
 
+export async function setFocusWindow() {
+    if (!IS_TAURI) return false
+    try {
+        await getCurrentWindow().setFocus()
+        return true
+    } catch (e) {
+        log.error(`Tauri setFocus Window error: ${e}`)
+        return false
+    }
+}
+
+export async function setAlwaysOnTopWindow(alwaysOnTop: boolean) {
+    if (!IS_TAURI) return false
+    try {
+        await getCurrentWindow().setAlwaysOnTop(alwaysOnTop)
+        return true
+    } catch (e) {
+        log.error(`Tauri setAlwaysOnTop Window error: ${e}`)
+        return false
+    }
+}
+
 export async function showAndFocusWindow() {
     if (!IS_TAURI) return false
     try {
         const window = getCurrentWindow()
         await window.show()
         await window.setFocus()
+        await window.setAlwaysOnTop(true)
         return true
     } catch (e) {
         log.error(`Tauri show Window error: ${e}`)
@@ -146,7 +169,7 @@ export async function saveAutoStart(value: boolean) {
 export async function openDir(path: string) {
     if (!IS_TAURI) return false
     try {
-        revealItemInDir(path)
+        await revealItemInDir(path)
         return true
     } catch (err) {
         log.error('Failed to revealItemInDir:', err)
@@ -157,7 +180,7 @@ export async function openDir(path: string) {
 export async function openUrl(path: string) {
     if (!IS_TAURI) return false
     try {
-        openUrlTauri(path)
+        await openUrlTauri(path)
         return true
     } catch (err) {
         log.error('Failed to openUrl:', err)

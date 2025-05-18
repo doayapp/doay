@@ -74,7 +74,7 @@ pub fn get_doay_ray_dir() -> Option<PathBuf> {
 
 pub fn create_main_window(app: &App) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(target_os = "linux")]
-    let visible = true; // Linux 不隐藏，保证居中和最小化，最大化，关闭按钮正常
+    let visible = false; // Linux 不隐藏，保证居中和最小化，最大化，关闭按钮正常
 
     #[cfg(not(target_os = "linux"))]
     let visible = false; // 其他平台默认隐藏窗口
@@ -143,6 +143,7 @@ fn set_tray<R: Runtime>(app: &App<R>) -> tauri::Result<()> {
                         }
                         let _ = window.show();
                         let _ = window.set_focus();
+                        let _ = window.set_always_on_top(true); // 让窗口置顶，防止被遮挡
                     }
                 }
                 _ => {}
@@ -167,8 +168,20 @@ fn set_tray<R: Runtime>(app: &App<R>) -> tauri::Result<()> {
                                 let _ = window.unminimize();
                             }
                         }
+
                         let _ = window.show();
                         let _ = window.set_focus();
+                        let _ = window.set_always_on_top(true); // 让窗口置顶，防止被遮挡
+
+                        // 延迟取消置顶 + 再次聚焦（增强兼容性）
+                        tauri::async_runtime::spawn({
+                            let window = window.clone();
+                            async move {
+                                std::thread::sleep(std::time::Duration::from_millis(200));
+                                let _ = window.set_focus();
+                                let _ = window.set_always_on_top(false);
+                            }
+                        });
                     }
                 }
                 "quit" => {

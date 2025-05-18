@@ -44,8 +44,9 @@ import { useDebounce } from "./hook/useDebounce.ts"
 import { useVisibility } from "./hook/useVisibility.ts"
 import { useWindowFocused } from "./hook/useWindowFocused.ts"
 import { useNoBackspaceNav } from "./hook/useNoBackspaceNav.ts"
-import { hideWindow, showAndFocusWindow } from "./util/tauri.ts"
+import { hideWindow, setAlwaysOnTopWindow, setFocusWindow, showAndFocusWindow } from "./util/tauri.ts"
 import { useInitLogLevel } from "./hook/useInitLogLevel.ts"
+import { IS_LINUX, sleep } from "./util/util.ts"
 
 let subscribeLastUpdate = 0
 
@@ -74,6 +75,13 @@ const App: React.FC = () => {
             let isQuiet = await isQuietMode()
             if (!isQuiet) await showAndFocusWindow()
             await appElapsed()
+
+            // 如果是 Linux 系统，延迟 200ms 再设置窗口置顶, 提升兼容性，保证标题栏按钮可用
+            if (IS_LINUX) {
+                await sleep(200)
+                await setFocusWindow()
+                await setAlwaysOnTopWindow(true)
+            }
         }, 0)
     }, [])
 
