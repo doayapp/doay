@@ -16,8 +16,8 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import DoubleArrowIcon from '@mui/icons-material/DoubleArrow'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import OpenWithIcon from '@mui/icons-material/OpenWith'
-import ToggleOnIcon from '@mui/icons-material/ToggleOn'
-import ToggleOffIcon from '@mui/icons-material/ToggleOff'
+import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked'
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 
 import { JsonCodeViewer } from "../component/CodeViewer.tsx"
 import { useDialog } from "../component/useDialog.tsx"
@@ -484,9 +484,9 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
                                 <TableCell align="right" sx={{p: '8px'}}>
                                     <Tooltip arrow title="启用" placement="top">
                                         {Boolean(row.on) ? (
-                                            <IconButton sx={{color: 'info.main'}} onClick={_ => handleEnable(key)}><ToggleOnIcon fontSize="medium"/></IconButton>
+                                            <IconButton color="success" onClick={_ => handleEnable(key)}><RadioButtonCheckedIcon fontSize="medium"/></IconButton>
                                         ) : (
-                                            <IconButton sx={{color: 'grey.500'}} onClick={_ => handleEnable(key)}><ToggleOffIcon fontSize="medium"/></IconButton>
+                                            <IconButton sx={{color: 'grey.500'}} onClick={_ => handleEnable(key)}><RadioButtonUncheckedIcon fontSize="medium"/></IconButton>
                                         )}
                                     </Tooltip>
                                     <Tooltip arrow title="排序" placement="top">
