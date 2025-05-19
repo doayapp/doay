@@ -78,7 +78,7 @@ export default () => {
         <Card>
             <Typography variant="h6" sx={{p: 2, pl: 3, pb: 1.5}}>
                 <div className="flex-center-gap1">
-                    自动设置
+                    系统代理设置
                     <Tooltip arrow placement="right" title="开启后，将自动修改操作系统代理设置">
                         <HelpIcon fontSize="small" sx={{color: 'text.secondary'}}/>
                     </Tooltip>
