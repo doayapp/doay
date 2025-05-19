@@ -74,7 +74,7 @@ export async function uriToServerRow(uri: string): Promise<ServerRow | null> {
         }
 
         if (shouldLog('trace')) {
-            uri = uri.replace(/^[a-z]+:/, 'http:')
+            uri = uri.replace(/^[a-z]+:/, 'http:') // 新版本 webview 更严格地按 WHATWG URL 规范解析 URL，不合法的链接会丢失部分参数
             log.trace(`Parsed URI: ${JSON.stringify(row)}, URL Object: ${JSON.stringify(urlToObject(new URL(uri)))}, userAgent: ${navigator.userAgent}`)
         }
 
