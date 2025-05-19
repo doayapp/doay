@@ -138,7 +138,7 @@ async function uriToVmessRow(uri: string): Promise<ServerRow> {
     let ps = ''
     let data: VmessRow
 
-    const url = new URL(uri.replace('vmess://', 'http://'))
+    const url = new URL(uri.replace(/^vmess:/, 'http:'))
     if (url.search) {
         if (url.hash) ps = url.hash.slice(1).trim()
         const p = new URLSearchParams(url.search)
@@ -223,7 +223,7 @@ async function uriToVlessRow(uri: string): Promise<ServerRow> {
     let data: VlessRow
 
     // 新版本 Edge 浏览器内核，非标准链接会丢失部分参数
-    const url = new URL(uri.replace('vless://', 'http://'))
+    const url = new URL(uri.replace(/^vless:/, 'http:'))
     if (url.search) {
         let add = url.hostname || ''
         let port = Number(url.port) || 0
@@ -321,7 +321,7 @@ async function uriToSsRow(uri: string): Promise<ServerRow> {
     let ps = ''
     let data: SsRow
 
-    const url = new URL(uri.replace('ss://', 'http://'))
+    const url = new URL(uri.replace(/^ss:/, 'http:'))
     if (url.username) {
         if (url.hash) ps = url.hash.slice(1).trim()
         const [method, password] = decodeBase64(safeDecodeURI(url.username)).split(':')
@@ -363,7 +363,7 @@ async function uriToTrojanRow(uri: string): Promise<ServerRow> {
     let ps = ''
     let data: TrojanRow
 
-    const url = new URL(uri.replace('trojan://', 'http://'))
+    const url = new URL(uri.replace(/^trojan:/, 'http:'))
     if (url.search) {
         if (url.hash) ps = url.hash.slice(1).trim()
         const p = new URLSearchParams(url.search)
@@ -434,7 +434,7 @@ export function serverRowToUri(row: ServerRow): string {
 }
 
 function vmessRowToUri(row: VmessRow, ps: string): string {
-    const url = new URL('vmess://')
+    const url = new URL('http://dummy')
     url.hostname = row.add
     url.port = row.port.toString()
     url.username = row.id
@@ -459,14 +459,14 @@ function vmessRowToUri(row: VmessRow, ps: string): string {
     }
 
     url.search = p.toString()
-    return url.toString()
+    return url.toString().replace(/^http:/, 'vmess:')
 }
 
 function vlessRowToUri(row: VlessRow, ps: string): string {
-    const url = new URL('vless://')
+    const url = new URL('http://dummy')
+    url.username = row.id
     url.hostname = row.add
     url.port = row.port.toString()
-    url.username = row.id
     url.hash = ps ? `#${ps}` : ''
 
     const p = new URLSearchParams()
@@ -490,20 +490,20 @@ function vlessRowToUri(row: VlessRow, ps: string): string {
     if (row.spx) p.set('spx', row.spx)
 
     url.search = p.toString()
-    return url.toString()
+    return url.toString().replace(/^http:/, 'vless:')
 }
 
 function ssRowToUri(row: SsRow, ps: string): string {
-    const url = new URL('ss://')
+    const url = new URL('http://dummy')
     url.hostname = row.add
     url.port = row.port.toString()
     url.username = encodeBase64(`${row.scy}:${row.pwd}`)
     url.hash = ps ? `#${ps}` : ''
-    return url.toString()
+    return url.toString().replace(/^http:/, 'ss:')
 }
 
 function trojanRowToUri(row: TrojanRow, ps: string): string {
-    const url = new URL('trojan://')
+    const url = new URL('http://dummy')
     url.hostname = row.add
     url.port = row.port.toString()
     url.username = row.pwd
@@ -518,7 +518,7 @@ function trojanRowToUri(row: TrojanRow, ps: string): string {
     if (row.path) row.net !== 'grpc' ? p.set('path', row.path) : p.set('serviceName', row.path)
 
     url.search = p.toString()
-    return url.toString()
+    return url.toString().replace(/^http:/, 'trojan:')
 }
 
 export function serverRowToBase64Uri(row: ServerRow): string {
