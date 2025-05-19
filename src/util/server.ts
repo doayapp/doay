@@ -91,6 +91,21 @@ export function getScy(row: { scy: string, net?: string, tls?: boolean }): strin
     return scy
 }
 
+function parseUri(uri: string) {
+    const [href, protocol, username, hostname, port, query, hash] = uri.match(/^([a-z]+):\/\/([^@]+)@?([^:/?#]+):?(\d+)?\?([^#]*)#?(.*)?$/i) || []
+
+    let params: any = {}
+    query?.split("&").forEach(kv => {
+        const [k, v] = kv.split("=")
+        params[k] = v
+    })
+
+    const r = {href, protocol, username, hostname, port, query, params, hash}
+    log.trace(`Regex parsing result: ${JSON.stringify(r)}, URI: ${uri}`)
+
+    return r
+}
+
 /**
  * VMess / VLESS 分享链接提案: https://github.com/XTLS/Xray-core/discussions/716
  *
@@ -123,13 +138,13 @@ async function uriToVmessRow(uri: string): Promise<ServerRow> {
     let ps = ''
     let data: VmessRow
 
-    const url = new URL(uri)
+    const url = new URL(uri.replace('vmess://', 'http://'))
     if (url.search) {
         if (url.hash) ps = url.hash.slice(1).trim()
         const p = new URLSearchParams(url.search)
         data = {
             add: url.hostname,
-            port: Number(url.port) || '',
+            port: Number(url.port) || 0,
             id: url.username,
             aid: p.get('aid') || '0',
 
@@ -153,7 +168,7 @@ async function uriToVmessRow(uri: string): Promise<ServerRow> {
         ps = d.ps || ''
         data = {
             add: d.add || '',
-            port: Number(d.port) || '',
+            port: Number(d.port) || 0,
             id: d.id || '',
             aid: d.aid || '0',
 
@@ -207,14 +222,27 @@ async function uriToVlessRow(uri: string): Promise<ServerRow> {
     let ps = ''
     let data: VlessRow
 
-    const url = new URL(uri)
+    // 新版本 Edge 浏览器内核，非标准链接会丢失部分参数
+    const url = new URL(uri.replace('vless://', 'http://'))
     if (url.search) {
+        let add = url.hostname || ''
+        let port = Number(url.port) || 0
+        let id = url.username || ''
+
+        if (!id) {
+            let rUrl = parseUri(uri)
+            if (rUrl.username) id = rUrl.username
+            if (rUrl.hostname) add = rUrl.hostname
+            if (rUrl.port) port = Number(rUrl.port) || 0
+        }
+
         if (url.hash) ps = url.hash.slice(1).trim()
+
         const p = new URLSearchParams(url.search)
         data = {
-            add: url.hostname,
-            port: Number(url.port) || '',
-            id: url.username,
+            add: add,
+            port: port,
+            id: id,
 
             net: p.get('net') || p.get('type') || 'raw',
             scy: p.get('scy') || p.get('security') || 'none',
@@ -248,7 +276,7 @@ async function uriToVlessRow(uri: string): Promise<ServerRow> {
         ps = d.ps || ''
         data = {
             add: d.add || '',
-            port: Number(d.port) || '',
+            port: Number(d.port) || 0,
             id: d.id || '',
 
             net: d.net || 'raw',
@@ -293,7 +321,7 @@ async function uriToSsRow(uri: string): Promise<ServerRow> {
     let ps = ''
     let data: SsRow
 
-    const url = new URL(uri)
+    const url = new URL(uri.replace('ss://', 'http://'))
     if (url.username) {
         if (url.hash) ps = url.hash.slice(1).trim()
         const [method, password] = decodeBase64(safeDecodeURI(url.username)).split(':')
@@ -335,7 +363,7 @@ async function uriToTrojanRow(uri: string): Promise<ServerRow> {
     let ps = ''
     let data: TrojanRow
 
-    const url = new URL(uri)
+    const url = new URL(uri.replace('trojan://', 'http://'))
     if (url.search) {
         if (url.hash) ps = url.hash.slice(1).trim()
         const p = new URLSearchParams(url.search)
