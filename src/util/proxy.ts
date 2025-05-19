@@ -55,7 +55,7 @@ function isHostMatch(domains, host) {
 function FindProxyForURL(url, host) {
 	if (isHostMatch(proxyDomains, host)) return proxy;
 	if (isHostMatch(directDomains, host)) return "DIRECT";
-	if (isHostMatch(rejectDomains, host)) return "PROXY 0.0.0.0:80";
+	if (isHostMatch(rejectDomains, host)) return "PROXY 127.0.0.1:65535";
 	return ${isUnmatchedDirect ? '"DIRECT"' : 'proxy'};
 }
 `
