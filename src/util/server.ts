@@ -74,6 +74,7 @@ export async function uriToServerRow(uri: string): Promise<ServerRow | null> {
         }
 
         if (shouldLog('trace')) {
+            uri = uri.replace(/^[a-z]+:/, 'http:')
             log.trace(`Parsed URI: ${JSON.stringify(row)}, URL Object: ${JSON.stringify(urlToObject(new URL(uri)))}, userAgent: ${navigator.userAgent}`)
         }
 
