@@ -1,5 +1,6 @@
 import { log } from "./invoke.ts"
 import { getSocksConf, getHttpConf } from "./ray.ts"
+import { safeJsonParse } from "./crypto.ts"
 
 export function getConf(row: ServerRow, appDir: string, config: AppConfig, rayConfig: RayCommonConfig) {
     let conf: any = {}
@@ -357,11 +358,17 @@ function getGrpcSettings(row: { host: string, path: string }, mode?: boolean) {
 // https://xtls.github.io/config/transports/xhttp.html
 // https://github.com/XTLS/Xray-core/discussions/4113
 function getXhttpSettings(row: VlessRow) {
-    return {
-        host: row.host || '',
-        path: row.path || '',
-        mode: row.mode || 'auto'
+    let r: any = {}
+    if (row.host) r.host = row.host
+    if (row.path) r.path = row.path
+    r.mode = row.mode || 'auto'
+
+    if (row.extra) {
+        let extra = safeJsonParse(row.extra)
+        if (extra) r.extra = extra
     }
+
+    return r
 }
 
 // https://xtls.github.io/config/transport.html#tlsobject
