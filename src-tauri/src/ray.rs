@@ -187,7 +187,7 @@ pub fn force_kill() -> bool {
     }
 
     trace!(
-        "Force kill complete. Elapsed: {:?}, total processes: {}, xray killed: {}",
+        "ForceKill: duration={:?}, total_processes={}, xray_killed={}",
         start.elapsed(),
         sys.processes().len(),
         killed_count

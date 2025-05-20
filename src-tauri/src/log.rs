@@ -1,7 +1,7 @@
 use crate::config;
 use crate::dirs;
 use chrono::{Local, TimeZone};
-use logger::{trace, error};
+use logger::{error, trace};
 use serde_json::{json, Value};
 use std::fs::{self, File, OpenOptions};
 use std::io::{BufWriter, Read, Seek, SeekFrom, Write};
