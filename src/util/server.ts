@@ -249,7 +249,7 @@ async function uriToVlessRow(uri: string): Promise<ServerRow> {
             scy: p.get('scy') || p.get('security') || 'none',
 
             host: p.get('host') || '',
-            path: p.get('path') || p.get('sni') || p.get('serviceName') || '',
+            path: p.get('path') || '',
             sni: p.get('sni') || p.get('serviceName') || '',
 
             mode: p.get('mode') || '',
