@@ -380,6 +380,7 @@ function parseAlpn(alpn: string): string[] {
     return alpn.split(',').map(item => item.trim())
 }
 
+// 这部分官方文档写的有点乱，服务端和客户端的配置规则写在了一起，很容易让人混淆 --- 2025.05.20
 // https://xtls.github.io/config/transport.html#realityobject
 // https://github.com/XTLS/REALITY
 function getRealitySettings(row: VlessRow) {
