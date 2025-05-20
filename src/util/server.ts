@@ -460,7 +460,7 @@ function vmessRowToUri(row: VmessRow, ps: string): string {
     }
 
     url.search = p.toString()
-    return url.toString().replace(/^http:/, 'vmess:')
+    return url.toString().replace(/^http:/, 'vmess:').replace('/?', '?')
 }
 
 function vlessRowToUri(row: VlessRow, ps: string): string {
@@ -491,7 +491,7 @@ function vlessRowToUri(row: VlessRow, ps: string): string {
     if (row.spx) p.set('spx', row.spx)
 
     url.search = p.toString()
-    return url.toString().replace(/^http:/, 'vless:')
+    return url.toString().replace(/^http:/, 'vless:').replace('/?', '?')
 }
 
 function ssRowToUri(row: SsRow, ps: string): string {
@@ -500,7 +500,7 @@ function ssRowToUri(row: SsRow, ps: string): string {
     url.port = row.port.toString()
     url.username = encodeBase64(`${row.scy}:${row.pwd}`)
     url.hash = ps ? `#${ps}` : ''
-    return url.toString().replace(/^http:/, 'ss:')
+    return url.toString().replace(/^http:/, 'ss:').replace('/#', '#')
 }
 
 function trojanRowToUri(row: TrojanRow, ps: string): string {
@@ -519,7 +519,7 @@ function trojanRowToUri(row: TrojanRow, ps: string): string {
     if (row.path) row.net !== 'grpc' ? p.set('path', row.path) : p.set('serviceName', row.path)
 
     url.search = p.toString()
-    return url.toString().replace(/^http:/, 'trojan:')
+    return url.toString().replace(/^http:/, 'trojan:').replace('/?', '?')
 }
 
 export function serverRowToBase64Uri(row: ServerRow): string {
