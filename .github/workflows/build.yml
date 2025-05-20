@@ -8,7 +8,7 @@ on:
 permissions: write-all
 
 env:
-    XRAY_VERSION: v25.4.30
+# XRAY_VERSION: v25.4.30
 
 jobs:
     windows:
@@ -53,10 +53,23 @@ jobs:
                     echo "📦 npm version: $(npm -v)"
                     echo "📦 pnpm version: $(pnpm -v || echo 'pnpm not installed')"
 
+            -   name: Get Xray latest release tag
+                uses: actions/github-script@v7
+                id: get_xray_version
+                with:
+                    script: |
+                        const release = await github.rest.repos.getLatestRelease({
+                          owner: 'XTLS',
+                          repo: 'Xray-core'
+                        });
+                        const version = release.data.tag_name;
+                        core.setOutput('version', version);
+                        core.info(`Xray latest version: ${version}`);
+
             -   name: Download Xray
                 shell: pwsh
                 run: |
-                    $url = "https://github.com/XTLS/Xray-core/releases/download/${{ env.XRAY_VERSION }}/${{ matrix.xray_zip }}"
+                    $url = "https://github.com/XTLS/Xray-core/releases/download/${{ steps.get_xray_version.outputs.version }}/${{ matrix.xray_zip }}"
                     Invoke-WebRequest -Uri $url -OutFile ${{ matrix.xray_zip }}
                     New-Item -ItemType Directory -Force -Path src-tauri/ray | Out-Null
                     Expand-Archive -Path ${{ matrix.xray_zip }} -DestinationPath src-tauri/ray -Force
@@ -155,10 +168,23 @@ jobs:
                     echo "📦 npm version: $(npm -v)"
                     echo "📦 pnpm version: $(pnpm -v || echo 'pnpm not installed')"
 
+            -   name: Get Xray latest release tag
+                uses: actions/github-script@v7
+                id: get_xray_version
+                with:
+                    script: |
+                        const release = await github.rest.repos.getLatestRelease({
+                          owner: 'XTLS',
+                          repo: 'Xray-core'
+                        });
+                        const version = release.data.tag_name;
+                        core.setOutput('version', version);
+                        core.info(`Xray latest version: ${version}`);
+
             -   name: Download Xray
                 shell: bash
                 run: |
-                    URL="https://github.com/XTLS/Xray-core/releases/download/${{ env.XRAY_VERSION }}/${{ matrix.xray_zip }}"
+                    URL="https://github.com/XTLS/Xray-core/releases/download/${{ steps.get_xray_version.outputs.version }}/${{ matrix.xray_zip }}"
                     wget "$URL" -O "${{ matrix.xray_zip }}"
                     mkdir -p src-tauri/ray
                     unzip -o "${{ matrix.xray_zip }}" -d src-tauri/ray
@@ -251,10 +277,23 @@ jobs:
                     echo "📦 npm version: $(npm -v)"
                     echo "📦 pnpm version: $(pnpm -v || echo 'pnpm not installed')"
 
+            -   name: Get Xray latest release tag
+                uses: actions/github-script@v7
+                id: get_xray_version
+                with:
+                    script: |
+                        const release = await github.rest.repos.getLatestRelease({
+                          owner: 'XTLS',
+                          repo: 'Xray-core'
+                        });
+                        const version = release.data.tag_name;
+                        core.setOutput('version', version);
+                        core.info(`Xray latest version: ${version}`);
+
             -   name: Download Xray
                 shell: bash
                 run: |
-                    URL="https://github.com/XTLS/Xray-core/releases/download/${{ env.XRAY_VERSION }}/${{ matrix.xray_zip }}"
+                    URL="https://github.com/XTLS/Xray-core/releases/download/${{ steps.get_xray_version.outputs.version }}/${{ matrix.xray_zip }}"
                     wget "$URL" -O "${{ matrix.xray_zip }}"
                     mkdir -p src-tauri/ray
                     unzip -o "${{ matrix.xray_zip }}" -d src-tauri/ray
