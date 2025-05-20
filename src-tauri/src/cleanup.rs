@@ -26,6 +26,6 @@ pub fn init() -> CleanupPlugin {
 
 pub fn exit_cleanly() {
     network::disable_proxies();
-    ray::stop() && ray::force_kill();
+    let _ = ray::stop() && ray::force_kill();
     info!("Cleanup completed");
 }
