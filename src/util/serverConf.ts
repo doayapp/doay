@@ -371,7 +371,7 @@ function getTlsSettings(row: { host: string, alpn: string, fp: string }, allowIn
     if (row.alpn) settings.alpn = parseAlpn(row.alpn)
     if (row.fp) settings.fingerprint = row.fp
     return {
-        allowInsecure: allowInsecure ?? false, // 关闭证书检测非常危险，不建议开启，所以不考虑实现，实在有需求，直接修改配置文件即可
+        allowInsecure: allowInsecure ?? false, // 关闭证书检测非常危险，不建议开启，所以不考虑实现，实在有需求，可直接自行修改配置文件
         ...settings
     }
 }
