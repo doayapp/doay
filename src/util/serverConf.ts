@@ -137,7 +137,7 @@ function vmessRowToConf(row: VmessRow): any {
     } else if (row.net === 'kcp') {
         settings = {...settings, kcpSettings: getKcpSettings(row)}
     } else if (row.net === 'grpc') {
-        settings = {...settings, grpcSettings: getGrpcSettings(row, row.mode === 'multi')}
+        settings = {...settings, grpcSettings: getGrpcSettings(row.host, row.path, row.mode === 'multi')}
     } else if (row.net === 'ws') {
         settings = {...settings, wsSettings: getWsSettings(row)}
     } else if (row.net === 'http') {
@@ -187,7 +187,7 @@ function vlessRowToConf(row: VlessRow): any {
     if (row.net === 'ws') {
         settings = {...settings, wsSettings: getWsSettings(row)}
     } else if (row.net === 'grpc') {
-        settings = {...settings, grpcSettings: getGrpcSettings(row, row.mode === 'multi')}
+        settings = {...settings, grpcSettings: getGrpcSettings(row.host, row.sni, row.mode === 'multi')}
     } else if (row.net === 'xhttp') {
         settings = {...settings, xhttpSettings: getXhttpSettings(row)}
     }
@@ -249,7 +249,7 @@ function trojanRowToConf(row: TrojanRow): any {
     if (row.net === 'ws') {
         settings = {wsSettings: getWsSettings(row)}
     } else if (row.net === 'grpc') {
-        settings = {grpcSettings: getGrpcSettings(row)}
+        settings = {grpcSettings: getGrpcSettings(row.host, row.path)}
     }
 
     return {
@@ -344,15 +344,15 @@ function getWsSettings(row: VmessRow | VlessRow | TrojanRow) {
 // https://xtls.github.io/config/transports/grpc.html
 // https://www.v2fly.org/config/transport/grpc.html
 // https://www.v2fly.org/v5/config/stream/grpc.html
-function getGrpcSettings(row: { host: string, path: string }, mode?: boolean) {
-    return {
-        authority: row.host || '',
-        serviceName: row.path || '',
-        multiMode: mode || false, // 实验性 选项，可能不会被长期保留。此模式在 测试环境中 能够带来约 20% 的性能提升
-        idle_timeout: 60,
-        permit_without_stream: false,
-        initial_windows_size: 0
-    }
+function getGrpcSettings(host: string, sni: string, mode?: boolean) {
+    let r: any = {}
+    if (host) r.authority = host
+    if (sni) r.serviceName = sni
+    if (mode) r.multiMode = mode // 实验性 选项，可能不会被长期保留。此模式在 测试环境中 能够带来约 20% 的性能提升
+    r.idle_timeout = 60
+    r.permit_without_stream = false
+    r.initial_windows_size = 0
+    return r
 }
 
 // https://xtls.github.io/config/transports/xhttp.html
@@ -393,7 +393,7 @@ function parseAlpn(alpn: string): string[] {
 function getRealitySettings(row: VlessRow) {
     return {
         show: false,
-        serverName: row.path || '',
+        serverName: row.sni || '',
         fingerprint: row.fp || '',
         publicKey: row.pbk || '',
         shortId: row.sid || '',

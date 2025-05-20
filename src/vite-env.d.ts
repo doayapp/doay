@@ -135,7 +135,8 @@ interface VlessRow {
     scy: string; // 安全类型 security 如: none / tls / reality
 
     host: string; // 伪装域名 host
-    path: string; // (ws / xhttp) 伪装路径 path / (grpc / reality) 伪装主机名 SNI = Server Name Indication 如：example.com
+    path: string; // 伪装路径 path (ws / xhttp)
+    sni: string; // 伪装主机名 SNI = Server Name Indication 如：example.com (grpc / reality)
 
     // gRPC 传输模式 transport mode 如：gun / multi
     // XHTTP 传输模式 transport mode 如：auto / packet-up / stream-up / stream-one

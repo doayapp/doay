@@ -49,7 +49,8 @@ const ServerCreate: React.FC<NavProps> = ({setNavState}) => {
         scy: 'none', // 安全类型
 
         host: '', // 伪装域名
-        path: '', // 伪装路径 / (grpc / reality) 伪装主机名 SNI
+        path: '', // 伪装路径 (ws / xhttp)
+        sni: '', // 伪装主机名 SNI (grpc / reality)
 
         mode: '', // gRPC 传输模式
         extra: '', // XHTTP 额外参数 extra

@@ -250,6 +250,7 @@ async function uriToVlessRow(uri: string): Promise<ServerRow> {
 
             host: p.get('host') || '',
             path: p.get('path') || p.get('sni') || p.get('serviceName') || '',
+            sni: p.get('sni') || p.get('serviceName') || '',
 
             mode: p.get('mode') || '',
             extra: p.get('extra') || '',
@@ -285,6 +286,7 @@ async function uriToVlessRow(uri: string): Promise<ServerRow> {
 
             host: d.host || '',
             path: d.path || '',
+            sni: d.sni || '',
 
             mode: d.mode || '',
             extra: d.extra || '',
