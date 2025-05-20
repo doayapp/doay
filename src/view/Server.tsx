@@ -218,7 +218,7 @@ const Server: React.FC<NavProps> = ({setNavState}) => {
         }
 
         handleMenuClose()
-    }, 500)
+    }, 100)
 
     const setServerEnable = async (key: number) => {
         if (!serverList) return false
