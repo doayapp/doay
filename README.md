@@ -3,12 +3,6 @@
 基于 Rust + TypeScript 开发的跨平台 Xray GUI 客户端，采用现代化架构设计，现已支持 MacOS、Windows 和 Linux，未来计划移植至
 iOS 和 Android 平台
 
-## 名字由来
-
-- dog + day = Doay
-- Doay 是一只每天都爱笑的小狗，时间久了，眯眼眯到看不清世界，最后连毛都笑绿了
-  ![icon.png](src-tauri/icons/icon.png)
-
 ## 支持协议
 
 - VLESS / VMESS / Shadowsocks / Trojan / SOCKS / HTTP / HTTPS
@@ -18,6 +12,12 @@ iOS 和 Android 平台
 | 设置                 | 工具                 |
 |--------------------|--------------------|
 | ![](preview/1.png) | ![](preview/2.png) |
+
+## 名字由来
+
+- dog + day = Doay
+- Doay 是一只每天都爱笑的小狗，时间久了，眯眼眯到看不清世界，最后连毛都笑绿了
+  ![icon.png](src-tauri/icons/icon.png)
 
 ## 🍎 macOS 安装温馨提示（Doay）
 
