@@ -450,7 +450,7 @@ export const DnsModeEditor = ({dnsModeRow, handleUpdateSubmit, handleBack}: {
 
             <DialogActions sx={{p: 2}}>
                 <Stack direction="row" spacing={2} sx={{width: '100%', justifyContent: "space-between", alignItems: "center"}}>
-                    <Button variant="contained" color="info" onClick={handleSubmit}>修改</Button>
+                    <Button variant="contained" color="info" onClick={handleSubmit}>确定</Button>
                     <Button variant="contained" onClick={handleBack}>取消</Button>
                 </Stack>
             </DialogActions>
